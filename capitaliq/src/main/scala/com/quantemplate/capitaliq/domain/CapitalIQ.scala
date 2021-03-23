@@ -1,4 +1,7 @@
 package com.quantemplate.capitaliq.domain
+import io.circe.{ Encoder, Json }
+import io.circe.syntax.*
+
 
 object CapitalIQ:
   // enum IQFunction:
@@ -25,6 +28,8 @@ object CapitalIQ:
   opaque type Identifier = String
   object Identifier:
     def apply(s: String): Identifier = s
+  extension (i: Identifier)
+    def unwrap: String = i
 
   object Properties:
     opaque type RelativePeriod = String
@@ -46,6 +51,8 @@ object CapitalIQ:
       def forward(n: Int): MarkedPeriod = s"${period}+${n}"
 
     opaque type MarkedPeriod = String
+    extension (i: MarkedPeriod)
+      def unwrap: String = i
 
     type MetaDataTag = "FiscalYear" | "AsOfDate"
     type FilingMode = "P" | "F"
@@ -60,12 +67,9 @@ object CapitalIQ:
     // todo: reduce boilerplate of shared props with generic tuples: 
     // https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html
 
-    case class IQ_TOTAL_REV(
-      properties: IQ_TOTAL_REV.Props,
-      identifier: Identifier
-    ) extends Mnemonic
+    case class IQ_TOTAL_REV(properties: IQ_TOTAL_REV.Fn, identifier: Identifier) extends Mnemonic
     object IQ_TOTAL_REV:
-      enum Props:
+      enum Fn:
         case GDSP(
           currencyId: String,
           periodType: MarkedPeriod,
@@ -87,11 +91,51 @@ object CapitalIQ:
           currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
 
-  val xx = Mnemonic.IQ_TOTAL_REV(
-    properties = Mnemonic.IQ_TOTAL_REV.Props.GDSHE(
-        currencyId = "USD",
-        periodType = "IQ_FY" back 31,
-        metaDataTag = Some("FiscalYear")
-    ),
-    identifier = Identifier("IQ121238")
-  )
+      given Encoder[Fn] = Encoder.instance[Fn] {
+          case fn: Fn.GDSP => 
+              Json.obj(
+              "currencyId" -> Json.fromString(fn.currencyId),
+              "periodType" -> Json.fromString(fn.periodType.unwrap),
+              "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+              "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+              "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+            )
+          case fn: Fn.GDSHE =>
+              Json.obj(
+              "currencyId" -> Json.fromString(fn.currencyId),
+              "periodType" -> Json.fromString(fn.periodType.unwrap),
+              "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+              "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+              "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+              "metaDataTag" -> fn.metaDataTag.map(Json.fromString).getOrElse(Json.Null),
+            )
+        }
+
+      given Encoder[IQ_TOTAL_REV] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          (
+            // m.properties.getClass.getSimpleName,  
+            //  java.lang.InternalError: Malformed class name ???
+            "GDSHE",
+            m.identifier.unwrap,
+            "IQ_TOTAL_REV",
+            // m.getClass.getSimpleName,
+            m.properties 
+          )
+      }
+
+    end IQ_TOTAL_REV
+
+    given Encoder[Mnemonic] = Encoder.instance[Mnemonic] { 
+      case m: Mnemonic.IQ_TOTAL_REV => m.asJson
+    }
+
+  end Mnemonic
+
+  case class Request(inputRequests: Seq[Mnemonic])
+  object Request:
+    given Encoder[Request] = Encoder.forProduct1("inputRequests")(r => (r.inputRequests))
