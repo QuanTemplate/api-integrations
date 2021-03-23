@@ -8,13 +8,26 @@ import scala.concurrent.ExecutionContext
 import scala.util.Failure
 import scala.util.Success
 import akka.util.ByteString
+import akka.http.scaladsl.model.HttpMethods
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.model.ContentTypes
 
-object Main extends App {
-  implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
-  implicit val ec: ExecutionContext = system.executionContext
+@main
+def run() =
+  given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
+  given ExecutionContext = system.executionContext
 
   Http()
-    .singleRequest(HttpRequest(uri = "https://jsonplaceholder.typicode.com/todos/1"))
+    .singleRequest(
+      HttpRequest(
+        method = HttpMethods.POST,
+        uri = "https://jsonplaceholder.typicode.com/posts",
+        entity = HttpEntity(
+          ContentTypes.`application/json`,
+          raw"""{ "title": "foo", "body": "bar", "userId": 1 }"""
+        )
+      )
+    )
     .onComplete {
       case Failure(exception) => sys.error(s"Error: $exception")
       case Success(response) =>
@@ -25,4 +38,3 @@ object Main extends App {
         system.terminate()
     }
 
-}
