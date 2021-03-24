@@ -118,12 +118,9 @@ object CapitalIQ:
       given Encoder[IQ_TOTAL_REV] = 
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            // m.properties.getClass.getSimpleName,  
-            //  java.lang.InternalError: Malformed class name ???
-            "GDSHE",
+            m.properties match { case _: Fn.GDSHE => "GDSHE" case _: Fn.GDSP  => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_REV",
-            // m.getClass.getSimpleName,
             m.properties 
           )
       }
@@ -138,4 +135,4 @@ object CapitalIQ:
 
   case class Request(inputRequests: Seq[Mnemonic])
   object Request:
-    given Encoder[Request] = Encoder.forProduct1("inputRequests")(r => (r.inputRequests))
+    given Encoder[Request] = Encoder.forProduct1("inputRequests")(_.inputRequests)

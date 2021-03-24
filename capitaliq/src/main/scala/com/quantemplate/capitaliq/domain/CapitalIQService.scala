@@ -3,15 +3,14 @@ package com.quantemplate.capitaliq
 import scala.concurrent.ExecutionContext
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport.*
 import org.slf4j.LoggerFactory
-import akka.http.scaladsl.model.RequestEntity
-import akka.http.scaladsl.marshalling.Marshal
 import akka.actor.typed.ActorSystem
+import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.util.ByteString
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
 
-class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_]):
+class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], conf: Config):
   given ExecutionContext = system.executionContext
   lazy val logger = LoggerFactory.getLogger(getClass)
 
@@ -32,10 +31,25 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_]):
 
     
     for
-      res <- httpService.sendRequest(req)
+      res <- sendRequest(req)
     yield 
       res.entity.dataBytes.runFold(ByteString(""))(_ ++ _) foreach { body =>
         logger.info("Got response, body: " + body.utf8String)
       }
+
+  private def sendRequest(req: Request) =
+    httpService.POST( 
+      conf.capitaliq.endpoint,
+      req, 
+      Some(
+        Authorization(
+          BasicHttpCredentials(
+            conf.capitaliq.credentials.username, 
+            conf.capitaliq.credentials.password
+          )
+        )
+      )
+    )
+      
   
   
