@@ -4,26 +4,25 @@ import io.circe.{ Encoder, Json }
 import io.circe.syntax.*
 
 object CapitalIQ:
-  // enum IQFunction:
-  //   /** Retrieves a single data point for a point in time */
-  //   case GDSP()
+  enum IQFunction:
+    /** Retrieves a single data point for a point in time */
+    case GDSP
 
-  //   /** Retrieves an array of values for the most current availability of content either end of day ot intra-day */
-  //   case GDSPV()
+    /** Retrieves an array of values for the most current availability of content either end of day ot intra-day */
+    case GDSPV
 
-  //   /** Retrieves a set of values that belong to a specific group using different mnemonics*/
-  //   case GDSG()
+    /** Retrieves a set of values that belong to a specific group using different mnemonics*/
+    case GDSG
 
-  //   /** Retrieves historical values for a mnemonic over a range of dates */
-  //   case GDSHE()
+    /** Retrieves historical values for a mnemonic over a range of dates */
+    case GDSHE
 
-  //   /** Retrieves an array or set of values over a historical range of dates */
-  //   case GDSHV()
+    /** Retrieves an array or set of values over a historical range of dates */
+    case GDSHV
 
-  //   /** Retrieves historical values for a mnemonic over a range of dates with a specific frequency */
-  //   case GDST()
+    /** Retrieves historical values for a mnemonic over a range of dates with a specific frequency */
+    case GDST
 
-  // import IQFunction.*
 
   opaque type Identifier = String
   object Identifier:
@@ -127,8 +126,18 @@ object CapitalIQ:
 
     end IQ_TOTAL_REV
 
-    given Encoder[Mnemonic] = Encoder.instance[Mnemonic] { 
+    case class IQ_COMPANY_NAME_LONG(identifier: Identifier) extends Mnemonic
+    object IQ_COMPANY_NAME_LONG:
+      given Encoder[IQ_COMPANY_NAME_LONG] = 
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
+          ( "GDSP", m.identifier.unwrap, "IQ_COMPANY_NAME_LONG" )
+        }
+
+    end IQ_COMPANY_NAME_LONG
+
+    given Encoder[Mnemonic] = Encoder.instance[Mnemonic] {
       case m: Mnemonic.IQ_TOTAL_REV => m.asJson
+      case m: Mnemonic.IQ_COMPANY_NAME_LONG => m.asJson
     }
 
   end Mnemonic

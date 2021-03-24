@@ -5,7 +5,9 @@ import com.typesafe.config.ConfigFactory
 case class Config(capitaliq: Config.CapitalIQ)
 object Config:
   case class CapitalIQ(
-    endpoint: String, credentials: CapitalIQ.Credentials
+    endpoint: String, 
+    credentials: CapitalIQ.Credentials,
+    mnemonicsPerRequest: Int
   )
   object CapitalIQ: 
     case class Credentials(username: String, password: String)
@@ -18,8 +20,9 @@ object Config:
         endpoint = conf.getString("capitaliq.endpoint"),
         credentials = CapitalIQ.Credentials(
           conf.getString("capitaliq.credentials.username"),
-          conf.getString("capitaliq.credentials.password")
-        )
+          conf.getString("capitaliq.credentials.password"),
+        ),
+        mnemonicsPerRequest = conf.getInt("capitaliq.mnemonicsPerRequest")
       )
     )
   

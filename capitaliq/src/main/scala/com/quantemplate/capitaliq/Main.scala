@@ -4,6 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext
 
+import com.quantemplate.capitaliq.domain.{Identifiers, CapitalIQService}
 
 @main
 def run() =
@@ -15,5 +16,5 @@ def run() =
   val capitaliqService = CapitalIQService(httpService)
 
   capitaliqService
-    .getRevenueReport()
-    .onComplete(_ => system.terminate())
+    .getRevenueReport(Identifiers.load())
+    // .onComplete(_ => system.terminate())
