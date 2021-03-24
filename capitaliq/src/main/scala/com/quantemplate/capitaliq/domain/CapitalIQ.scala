@@ -1,7 +1,7 @@
 package com.quantemplate.capitaliq.domain
+
 import io.circe.{ Encoder, Json }
 import io.circe.syntax.*
-
 
 object CapitalIQ:
   // enum IQFunction:

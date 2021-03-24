@@ -30,15 +30,13 @@ lazy val capitaliq = (project in file("capitaliq"))
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-      // "com.typesafe.akka" %% "akka-stream-typed" % AkkaVersion,
       "de.heikoseeberger" %% "akka-http-circe" % "1.35.3",
       // circe
       "io.circe" %% "circe-core" % CirceVersion,
-      // "io.circe" %% "circe-generic" % CirceVersion,
       "io.circe" %% "circe-parser" % CirceVersion,
       // misc
       "org.scalatest" %% "scalatest" % "3.1.0" % Test,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.github.pureconfig" %% "pureconfig" % "0.14.1"
+      "com.typesafe" % "config" % "1.4.1"
     ).map(_.withDottyCompat(scalaVersion.value))
   )
