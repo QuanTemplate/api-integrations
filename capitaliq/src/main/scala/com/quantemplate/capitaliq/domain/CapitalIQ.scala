@@ -2,31 +2,10 @@ package com.quantemplate.capitaliq.domain
 
 import io.circe.{ Encoder, Decoder, Json }
 import io.circe.syntax.*
-import cats.Traverse
-import cats.syntax.traverse
+import cats.syntax.traverse.{*, given}
 import cats.instances.vector.{*, given}
 
 object CapitalIQ:
-  enum IQFunction:
-    /** Retrieves a single data point for a point in time */
-    case GDSP
-
-    /** Retrieves an array of values for the most current availability of content either end of day ot intra-day */
-    case GDSPV
-
-    /** Retrieves a set of values that belong to a specific group using different mnemonics*/
-    case GDSG
-
-    /** Retrieves historical values for a mnemonic over a range of dates */
-    case GDSHE
-
-    /** Retrieves an array or set of values over a historical range of dates */
-    case GDSHV
-
-    /** Retrieves historical values for a mnemonic over a range of dates with a specific frequency */
-    case GDST
-
-
   opaque type Identifier = String
   object Identifier:
     def apply(s: String): Identifier = s
@@ -155,12 +134,11 @@ object CapitalIQ:
     type Rows = Vector[Vector[(String, String)]]
 
     given Decoder[Response] = Decoder.instance[Response] { cursor => 
-        for
-           res <- cursor.downField("GDSSDKResponse").as[Vector[Json]]
-           jsonRows <- Traverse[Vector].traverse(res)(_.hcursor.downField("Rows").as[Vector[Json]])
-           rows <- Traverse[Vector].traverse(jsonRows)(r => Traverse[Vector].traverse(r)(_.hcursor.downField("Row").as[(String, String)]))
-
-        yield Response(rows)
+      for
+        jsonRes <- cursor.downField("GDSSDKResponse").as[Vector[Json]]
+        jsonRows <- jsonRes.traverse(_.hcursor.downField("Rows").as[Vector[Json]])
+        rows <- jsonRows.traverse(_.traverse(_.hcursor.downField("Row").as[(String, String)]))
+      yield Response(rows)
     }
 
 end CapitalIQ

@@ -38,8 +38,6 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
         logger.info("Got response: " + result) 
       }
       .recover { 
-        //  ERROR com.quantemplate.capitaliq.domain.CapitalIQService - Request error: DecodingFailure(C[A], List(DownArray, DownField(GDSSDKResponse)))
-        // :thinking
         case e: Throwable => logger.error("Request error: " + e)
       }
 

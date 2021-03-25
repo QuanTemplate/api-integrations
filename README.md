@@ -18,3 +18,16 @@ export $(xargs < .env)
 ```
 sbt run
 ```
+
+## Capital IQ
+Capital IQ is a reservoir of financial data which could be accessed through the API.
+We could access different information based on passed `Mnemonic` token.
+Each `Mnemonic` has assess to at least one of `Functions`. `Function`s specify the type of the response. Each function in different `Mnemonic` has access to different `Property Type`
+
+## Available functions
+- **GDSP** Retrieves a single data point for a point in time */
+- **GDSPV** Retrieves an array of values for the most current availability of content either end of day ot intra-day
+- **GDSG** Retrieves a set of values that belong to a specific group using different mnemonics
+- **GDSHE** Retrieves historical values for a mnemonic over a range of dates
+- **GDSHV** Retrieves an array or set of values over a historical range of dates
+- **GDST** Retrieves historical values for a mnemonic over a range of dates with a specific frequency
