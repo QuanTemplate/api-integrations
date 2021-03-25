@@ -1,7 +1,10 @@
 package com.quantemplate.capitaliq.domain
 
-import io.circe.{ Encoder, Json }
+import io.circe.{ Encoder, Decoder, Json }
 import io.circe.syntax.*
+import cats.Traverse
+import cats.syntax.traverse
+import cats.instances.vector.{*, given}
 
 object CapitalIQ:
   enum IQFunction:
@@ -135,6 +138,7 @@ object CapitalIQ:
 
     end IQ_COMPANY_NAME_LONG
 
+    // there is a StackOverflowError after using just a single `(_.asJson)`
     given Encoder[Mnemonic] = Encoder.instance[Mnemonic] {
       case m: Mnemonic.IQ_TOTAL_REV => m.asJson
       case m: Mnemonic.IQ_COMPANY_NAME_LONG => m.asJson
@@ -145,3 +149,18 @@ object CapitalIQ:
   case class Request(inputRequests: Seq[Mnemonic])
   object Request:
     given Encoder[Request] = Encoder.forProduct1("inputRequests")(_.inputRequests)
+
+  case class Response(rows: Response.Rows)
+  object Response:
+    type Rows = Vector[Vector[(String, String)]]
+
+    given Decoder[Response] = Decoder.instance[Response] { cursor => 
+        for
+           res <- cursor.downField("GDSSDKResponse").as[Vector[Json]]
+           jsonRows <- Traverse[Vector].traverse(res)(_.hcursor.downField("Rows").as[Vector[Json]])
+           rows <- Traverse[Vector].traverse(jsonRows)(r => Traverse[Vector].traverse(r)(_.hcursor.downField("Row").as[(String, String)]))
+
+        yield Response(rows)
+    }
+
+end CapitalIQ

@@ -1,7 +1,6 @@
 package com.quantemplate.capitaliq.domain
 
 import scala.concurrent.ExecutionContext
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport.*
 import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
@@ -34,22 +33,18 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
         }
       )
 
-    
-    for
-      res <- sendRequest(req)
-    yield 
-      res.entity.dataBytes.runFold(ByteString(""))(_ ++ _) foreach { body =>
-        logger.info("Got response, body: " + body.utf8String)
+    sendRequest(req)
+      .map { result => 
+        logger.info("Got response: " + result) 
+      }
+      .recover { 
+        //  ERROR com.quantemplate.capitaliq.domain.CapitalIQService - Request error: DecodingFailure(C[A], List(DownArray, DownField(GDSSDKResponse)))
+        // :thinking
+        case e: Throwable => logger.error("Request error: " + e)
       }
 
-  // def getCompanyNames(ids: Seq[Identifier]) = {
-  //   val req = Request(
-  //     ids.map(Mnemonic.IQ_COMPANY_NAME_LONG(_))
-  //   )
-  // }
-
   private def sendRequest(req: Request) =
-    httpService.POST( 
+    httpService.POST[Request, Response]( 
       conf.capitaliq.endpoint,
       req, 
       Some(

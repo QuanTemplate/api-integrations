@@ -4,15 +4,6 @@ ThisBuild / organization := "com.quantemplate"
 ThisBuild / scalaVersion := "3.0.0-RC1"
 ThisBuild / version := "1.0"
 
-// lazy val root = (project in file(".")).
-//   settings(
-//     inThisBuild(List(
-//       organization := "ch.epfl.scala",
-//       scalaVersion := "2.13.3"
-//     )),
-//     name := "hello-world"
-//   )
-
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.4"
 val CirceVersion = "0.14.0-M3"
@@ -37,6 +28,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       // misc
       "org.scalatest" %% "scalatest" % "3.1.0" % Test,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.typesafe" % "config" % "1.4.1"
+      "com.typesafe" % "config" % "1.4.1",
+      "org.typelevel" %% "cats-core" % "2.4.2"
     ).map(_.withDottyCompat(scalaVersion.value))
   )
