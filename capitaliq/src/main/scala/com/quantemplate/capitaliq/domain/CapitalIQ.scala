@@ -1,6 +1,6 @@
 package com.quantemplate.capitaliq.domain
 
-import io.circe.{ Encoder, Decoder, Json }
+import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
 import io.circe.syntax.*
 import cats.syntax.traverse.{*, given}
 import cats.instances.vector.{*, given}
@@ -129,16 +129,27 @@ object CapitalIQ:
   object Request:
     given Encoder[Request] = Encoder.forProduct1("inputRequests")(_.inputRequests)
 
-  case class Response(rows: Response.Rows)
-  object Response:
-    type Rows = Vector[Vector[(String, String)]]
+  case class RawResponse(responses: Vector[RawResponse.MnemonicResponse])
+  object RawResponse:
+    type Rows = Vector[(String, String)]
 
-    given Decoder[Response] = Decoder.instance[Response] { cursor => 
-      for
-        jsonRes <- cursor.downField("GDSSDKResponse").as[Vector[Json]]
-        jsonRows <- jsonRes.traverse(_.hcursor.downField("Rows").as[Vector[Json]])
-        rows <- jsonRows.traverse(_.traverse(_.hcursor.downField("Row").as[(String, String)]))
-      yield Response(rows)
-    }
+    case class MnemonicResponse(
+      error: String, 
+      mnemonic: String, // TODO: use decoder for the actual `Mnemonic` instance
+      rows: Option[Rows]
+    )
+    object MnemonicResponse:
+      given Decoder[RawResponse.MnemonicResponse] = Decoder.instance[RawResponse.MnemonicResponse] { cursor =>
+        for 
+          error <- cursor.get[String]("ErrMsg")
+          mnemonic <- cursor.get[String]("Mnemonic")
+          jsonRows <- cursor.get[Option[Vector[Json]]]("Rows")
+          rows <- jsonRows.traverse(_.traverse(_.hcursor.get[(String, String)]("Row")))
+        yield MnemonicResponse(error, mnemonic, rows)
+      }
+
+    given Decoder[RawResponse] = Decoder.instance[RawResponse](
+      _.get[Vector[RawResponse.MnemonicResponse]]("GDSSDKResponse").map(RawResponse(_))
+    )
 
 end CapitalIQ

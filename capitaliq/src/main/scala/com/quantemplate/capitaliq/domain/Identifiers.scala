@@ -9,11 +9,5 @@ object Identifiers:
     Source
       .fromResource("identifiers.txt")
       .getLines
-      .take(
-        // TODO: do not skip ids
-        // split it per `conf.capitaliq.mnemonicsPerRequest` 
-        // and make separate requests
-        1
-      )
       .map(CapitalIQ.Identifier(_))
-      .toSeq
+      .toVector
