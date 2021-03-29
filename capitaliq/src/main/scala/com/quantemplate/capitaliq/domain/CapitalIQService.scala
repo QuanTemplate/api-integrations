@@ -8,7 +8,6 @@ import akka.util.ByteString
 
 import com.quantemplate.capitaliq.{Config, HttpService}
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
-import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.RawResponse.*
 
 class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], conf: Config):
@@ -17,26 +16,7 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
   given ExecutionContext = system.executionContext
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  val getRevenueReport = 
-    sendConcurrentRequests(
-      ids => Request(
-        ids.map { id =>  
-          Mnemonic.IQ_TOTAL_REV(
-            properties = Mnemonic.IQ_TOTAL_REV.Fn.GDSHE(
-                currencyId = "USD",
-                // data from 1988 - 2018
-                // (`asOfDate`.year - 1988 - 1 = 29) 🤯
-                periodType = "IQ_FY" back 29,
-                asOfDate = Some("12/31/2018"),
-                metaDataTag = Some("FiscalYear")
-            ),
-            identifier = id
-          )
-        }
-      )
-    )
-
-  private def sendConcurrentRequests(toReq: Vector[Identifier] => Request)(ids: Vector[Identifier]) = 
+  def sendConcurrentRequests(toReq: Vector[Identifier] => Request)(ids: Vector[Identifier]) = 
     val requests = ids
       .grouped(conf.capitaliq.mnemonicsPerRequest)
       .toVector
@@ -45,16 +25,8 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
     Future
       .sequence(requests)
       .map(_.flatten)
-      .map { result => 
-        logger.info("Got response: " + result)
-      
-      }
-      .recover { 
-        case e: Throwable => logger.error("Request error: " + e)
-      }
-      
 
-  private def sendRequest(req: Request)(using ExecutionContext): Future[Vector[Response]] =
+  def sendRequest(req: Request)(using ExecutionContext): Future[Vector[Response]] =
     httpService.POST[Request, RawResponse](
       conf.capitaliq.endpoint,
       req, 
@@ -66,18 +38,47 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
           )
         )
       )
-    ) map { 
-        case RawResponse(res) => 
-          val errors = res.collect {
-            case r @ MnemonicResponse("InvalidTimePeriod", _, _) => InvalidServiceParametersError(r.error)
-            case MnemonicResponse(error, _, _) if !error.isEmpty => UnrecognizedServiceError(error)
-            case MnemonicResponse(_, mnemonic, rows) if rows.isEmpty => UnexpectedEmptyRows(mnemonic)
-          }
+    ).map(adaptRawResponse(req))
 
-          if !errors.isEmpty 
-            then throw MnemonicsError(errors)
-            else res.map(r => Response(r.mnemonic, r.rows.get))
+  private def adaptRawResponse(req: Request)(rawRes: RawResponse) =
+    val res = rawRes.responses
+    val result = req
+      .inputRequests
+      .zipWithIndex
+      .toVector
+      .map { case (req, i) => (req, res(i)) }
+
+    val errors = collectMnemonicErrors(result)
+
+    if !errors.isEmpty then throw MnemonicsError(errors)
+    
+    result.map { case (req, res) => 
+      Response(
+        req, 
+        res.rows.get
+          .filter {
+            case (data, column) => !(data == "Data Unavailable" || column == "")
+          }
+      ) 
     }
+
+  private def collectMnemonicErrors(result: Vector[(Mnemonic, MnemonicResponse)]) = 
+    result.collect {
+      case r @ (_, MnemonicResponse("InvalidTimePeriod", _)) =>
+        logger.error("InvalidServiceParametersError: {}", r._2.error) 
+        InvalidServiceParametersError(r._2.error)
+
+      case (_, MnemonicResponse(error, _)) if !error.isEmpty =>
+        logger.error("UnrecognizedServiceError: {}", error)
+        UnrecognizedServiceError(error)
+
+      case (_, MnemonicResponse(_, rows)) if rows.isEmpty => 
+        // TODO: write show instance for Mnemonic
+        logger.error("UnexpectedEmptyRows")
+        UnexpectedEmptyRows("Mnemonic not mapped")
+    }
+
+    
       
 object CapitalIQService:
-  case class Response(mnemonic: String, rows: RawResponse.Rows)
+  case class Response(mnemonic: Mnemonic, rows: RawResponse.Rows)

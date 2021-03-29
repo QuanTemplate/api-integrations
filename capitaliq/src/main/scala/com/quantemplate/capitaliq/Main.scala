@@ -1,10 +1,12 @@
 package com.quantemplate.capitaliq
 
+import java.time.*
+
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext
 
-import com.quantemplate.capitaliq.domain.{Identifiers, CapitalIQService}
+import com.quantemplate.capitaliq.domain.*
 
 @main
 def run() =
@@ -14,7 +16,12 @@ def run() =
 
   val httpService = HttpService()
   val capitaliqService = CapitalIQService(httpService)
+  val revenueReport = RevenueReport(capitaliqService)
 
-  capitaliqService
-    .getRevenueReport(Identifiers.load())
-    // .onComplete(_ => system.terminate())
+  revenueReport.generate(
+  Identifiers.load(), 
+   range = (
+    LocalDate.of(1988, 12, 31), 
+    LocalDate.of(2018, 12, 31)
+   )
+  )

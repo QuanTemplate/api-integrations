@@ -26,8 +26,10 @@ object CapitalIQ:
         "IQ_NTM"   | // Next 12 months
         "IQ_MONTH" | // Last completed month
         "IQ_YTD"     // Year-to-Date
+      def apply(str: Base): RelativePeriod = str
 
     extension (period: RelativePeriod.Base)
+      def marked: MarkedPeriod = period
       def back(n: Int): MarkedPeriod = s"${period}-${n}"
       def forward(n: Int): MarkedPeriod = s"${period}+${n}"
 
@@ -74,7 +76,7 @@ object CapitalIQ:
 
       given Encoder[Fn] = Encoder.instance[Fn] {
           case fn: Fn.GDSP => 
-              Json.obj(
+            Json.obj(
               "currencyId" -> Json.fromString(fn.currencyId),
               "periodType" -> Json.fromString(fn.periodType.unwrap),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
@@ -84,7 +86,7 @@ object CapitalIQ:
               "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
             )
           case fn: Fn.GDSHE =>
-              Json.obj(
+            Json.obj(
               "currencyId" -> Json.fromString(fn.currencyId),
               "periodType" -> Json.fromString(fn.periodType.unwrap),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
@@ -125,7 +127,7 @@ object CapitalIQ:
 
   end Mnemonic
 
-  case class Request(inputRequests: Seq[Mnemonic])
+  case class Request(inputRequests: Vector[Mnemonic])
   object Request:
     given Encoder[Request] = Encoder.forProduct1("inputRequests")(_.inputRequests)
 
@@ -133,19 +135,14 @@ object CapitalIQ:
   object RawResponse:
     type Rows = Vector[(String, String)]
 
-    case class MnemonicResponse(
-      error: String, 
-      mnemonic: String, // TODO: use decoder for the actual `Mnemonic` instance
-      rows: Option[Rows]
-    )
+    case class MnemonicResponse(error: String, rows: Option[Rows])
     object MnemonicResponse:
       given Decoder[RawResponse.MnemonicResponse] = Decoder.instance[RawResponse.MnemonicResponse] { cursor =>
         for 
           error <- cursor.get[String]("ErrMsg")
-          mnemonic <- cursor.get[String]("Mnemonic")
           jsonRows <- cursor.get[Option[Vector[Json]]]("Rows")
           rows <- jsonRows.traverse(_.traverse(_.hcursor.get[(String, String)]("Row")))
-        yield MnemonicResponse(error, mnemonic, rows)
+        yield MnemonicResponse(error, rows)
       }
 
     given Decoder[RawResponse] = Decoder.instance[RawResponse](

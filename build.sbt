@@ -29,6 +29,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       "org.scalatest" %% "scalatest" % "3.1.0" % Test,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
-      "org.typelevel" %% "cats-core" % "2.4.2"
+      "org.typelevel" %% "cats-core" % "2.4.2",
+      "com.norbitltd" %% "spoiwo" % "1.7.0"
     ).map(_.withDottyCompat(scalaVersion.value))
   )
