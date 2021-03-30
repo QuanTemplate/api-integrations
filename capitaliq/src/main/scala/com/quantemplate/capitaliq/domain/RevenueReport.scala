@@ -7,6 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
+import cats.syntax.option.*
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
@@ -16,39 +17,48 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
   given ExecutionContext = system.executionContext
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  def generate(
-    ids: Vector[Identifier],
-    range: (LocalDate, LocalDate),
-  ) = 
+  type ReportRows = Vector[Vector[Option[String]]]
+
+  def generateSpreadSheet(ids: Vector[Identifier], range: (LocalDate, LocalDate)) = 
+    for
+      names <- getNameRows(ids)
+      _ = logger.info("Fetched the company names")
+
+      data <- getDataRows(ids, range)
+      _ = logger.info("Fetched the report data")
+
+      _ = viewAsXlsx(names, data)
+      _ = logger.info("Constructed the spreadsheet")
+
+    yield ()
+
+  private def viewAsXlsx(names: ReportRows, data: ReportRows) = 
+    val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }
+    val sheetModel = Vector(View.SheetModel("Revenue", rows))
+
+    View.xlsx("CapitalIQ", sheetModel)
+
+  private def getDataRows(
+    ids: Vector[Identifier], 
+    range: (LocalDate, LocalDate)
+  ): Future[ReportRows] =
     import range.{ _1 => start, _2 => end }
 
     val periodType = "IQ_FY" back (end.getYear - start.getYear - 1)
-    val asOfDate =  Some(end.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")))
+    val asOfDate =  end.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")).some
 
-    for 
-      response <- getReportData(periodType, asOfDate)(ids)
-      _ = logger.info("Got the RevenueReport response")
-      rows = constructRows(response, range)
-      _ = logger.info("Constructed the rows")
+    getReportData(periodType, asOfDate)(ids).map { responses => 
+      val headerRange = (start.getYear to end.getYear).map(_.toString).toVector
 
-    yield View.xlsx(
-      "CapitalIQ", 
-      Vector(View.SheetModel("Revenue", rows))
-    )
+      val headerRows = headerRange.map(_.some)
+      val rows = responses.map { res =>
+        headerRange.map { col => 
+          res.rows.find(_.lift(1) == col.some).flatMap(_.headOption)
+        }
+      }
 
-  private def constructRows(
-    res: Vector[CapitalIQService.Response],
-    range: (LocalDate, LocalDate)): Vector[Vector[Option[String]]] = 
-    import range.{ _1 => start, _2 => end }
-
-    val headerRange = (start.getYear to end.getYear).map(_.toString).toVector
-
-    val headerRows = headerRange.map(Some(_))
-    val rows = res.map { r =>
-      headerRange.map(c => r.rows.find(_._2 == c).map(_._1))
+      headerRows +: rows
     }
-
-    headerRows +: rows
 
   private def getReportData(periodType: MarkedPeriod, asOfDate: Option[String] = None) =
     capitalIqService.sendConcurrentRequests(
@@ -60,9 +70,27 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
               currencyId = "USD",
               periodType = periodType,
               asOfDate = asOfDate,
-              metaDataTag = Some("FiscalYear")
+              metaDataTag = "FiscalYear".some
             )
           )
         }
       )
+    )
+
+  private def getNameRows(ids: Vector[Identifier]): Future[ReportRows] =
+    getReportNamesData(ids).map { responses =>
+      val headerRows = Vector("Company name".some, "ID".some)
+      val rows = responses.map { res =>
+        Vector(
+          res.rows.headOption.flatMap(_.headOption),
+          res.mnemonic.asInstanceOf[Mnemonic.IQ_COMPANY_NAME_LONG].identifier.unwrap.some
+        )
+      }
+
+      headerRows +: rows
+    }
+
+  private val getReportNamesData =
+    capitalIqService.sendConcurrentRequests(
+      ids => Request(ids.map(Mnemonic.IQ_COMPANY_NAME_LONG(_)))
     )

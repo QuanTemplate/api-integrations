@@ -18,10 +18,10 @@ def run() =
   val capitaliqService = CapitalIQService(httpService)
   val revenueReport = RevenueReport(capitaliqService)
 
-  revenueReport.generate(
-  Identifiers.load(), 
-   range = (
-    LocalDate.of(1988, 12, 31), 
-    LocalDate.of(2018, 12, 31)
-   )
+  revenueReport.generateSpreadSheet(
+    Identifiers.load(), 
+    range = (
+      LocalDate.of(1988, 12, 31), 
+      LocalDate.of(2018, 12, 31)
+    )
   )

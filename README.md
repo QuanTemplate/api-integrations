@@ -20,7 +20,7 @@ export $(xargs < .env)
 2. run the script(s)
 
 ```
-sbt run
+sbt capitaliq/run
 ```
 
 ## Capital IQ
@@ -44,9 +44,9 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
 
   - [X] handle API errors
   - [X] split requests to capital IQ per limit, merge them together
-  - [ ] transform to xlsx
+  - [X] transform to xlsx
+  - [X] handle ` (Data Unavailable,)`
 
-  - [] handle ` (Data Unavailable,)`
   - [] merge request for company names
 - QT integration:
 

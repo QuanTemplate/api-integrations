@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import akka.util.ByteString
+import cats.syntax.option.*
 
 import com.quantemplate.capitaliq.{Config, HttpService}
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
@@ -30,14 +31,12 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
     httpService.POST[Request, RawResponse](
       conf.capitaliq.endpoint,
       req, 
-      Some(
-        Authorization(
-          BasicHttpCredentials(
-            conf.capitaliq.credentials.username, 
-            conf.capitaliq.credentials.password
-          )
+      Authorization(
+        BasicHttpCredentials(
+          conf.capitaliq.credentials.username, 
+          conf.capitaliq.credentials.password
         )
-      )
+      ).some
     ).map(adaptRawResponse(req))
 
   private def adaptRawResponse(req: Request)(rawRes: RawResponse) =
@@ -55,10 +54,7 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
     result.map { case (req, res) => 
       Response(
         req, 
-        res.rows.get
-          .filter {
-            case (data, column) => !(data == "Data Unavailable" || column == "")
-          }
+        res.rows.get.filter(data => !(data.lift(0) == "Data Unavailable".some))
       ) 
     }
 

@@ -133,7 +133,7 @@ object CapitalIQ:
 
   case class RawResponse(responses: Vector[RawResponse.MnemonicResponse])
   object RawResponse:
-    type Rows = Vector[(String, String)]
+    type Rows = Vector[Vector[String]] // the length of inner Vector is known before the request
 
     case class MnemonicResponse(error: String, rows: Option[Rows])
     object MnemonicResponse:
@@ -141,7 +141,7 @@ object CapitalIQ:
         for 
           error <- cursor.get[String]("ErrMsg")
           jsonRows <- cursor.get[Option[Vector[Json]]]("Rows")
-          rows <- jsonRows.traverse(_.traverse(_.hcursor.get[(String, String)]("Row")))
+          rows <- jsonRows.traverse(_.traverse(_.hcursor.get[Vector[String]]("Row")))
         yield MnemonicResponse(error, rows)
       }
 
