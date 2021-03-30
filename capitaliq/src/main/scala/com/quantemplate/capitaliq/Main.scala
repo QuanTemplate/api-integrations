@@ -8,19 +8,17 @@ import scala.concurrent.ExecutionContext
 import com.quantemplate.capitaliq.domain.*
 
 @main
-def run() =
+def generateRevenueSheet(filePath: String) =
   given Config = Config.load()
-  given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
-  given ExecutionContext = system.executionContext
+  given ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
 
-  val httpService = HttpService()
-  val capitaliqService = CapitalIQService(httpService)
-  val revenueReport = RevenueReport(capitaliqService)
+  val revenueReport = RevenueReport(CapitalIQService(HttpService()))
 
   revenueReport.generateSpreadSheet(
-    Identifiers.load(), 
+    ids = Identifiers.load(), 
     range = (
       LocalDate.of(1988, 12, 31), 
       LocalDate.of(2018, 12, 31)
-    )
+    ),
+    filePath = filePath
   )

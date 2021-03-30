@@ -4,7 +4,7 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Try, Failure, Success}
 import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.typed.ActorSystem
 import cats.syntax.option.*
@@ -18,7 +18,11 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
 
   type ReportRows = Vector[Vector[Option[String]]]
 
-  def generateSpreadSheet(ids: Vector[Identifier], range: (LocalDate, LocalDate)) = 
+  def generateSpreadSheet(
+    ids: Vector[Identifier], 
+    range: (LocalDate, LocalDate),
+    filePath: String
+    ) = 
    measure {
       for
         names <- getNameRows(ids)
@@ -27,16 +31,20 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
         data <- getDataRows(ids, range)
         _ = logger.info("Fetched the report data")
 
-        _ = viewAsXlsx(names, data)
+        _ = viewAsXlsx(filePath, names, data)
         _ = logger.info("Constructed the spreadsheet")
       yield ()
-   }
+   }.onComplete { 
+     case Failure(e) => 
+      logger.error("Uncaught exception while generating the spreadsheet: {}", e.toString) 
+     case Success(_) => ()
+  }
 
-  private def viewAsXlsx(names: ReportRows, data: ReportRows) = 
+  private def viewAsXlsx(filePath: String, names: ReportRows, data: ReportRows) = 
     val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }
     val sheetModel = Vector(View.SheetModel("Revenue", rows))
 
-    View.xlsx("CapitalIQ", sheetModel)
+    View.xlsx(filePath, sheetModel)
 
   private def getDataRows(
     ids: Vector[Identifier], 
