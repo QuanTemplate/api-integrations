@@ -2,35 +2,35 @@ package com.quantemplate.capitaliq.domain
 
 import java.time.*
 import java.time.format.DateTimeFormatter
-
+import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.typed.ActorSystem
 import cats.syntax.option.*
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
-import com.quantemplate.capitaliq.domain.CapitalIQ.RawResponse.*
 
 class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSystem[_]):
   given ExecutionContext = system.executionContext
-  lazy val logger = LoggerFactory.getLogger(getClass)
+  given logger: Logger = LoggerFactory.getLogger(getClass)
 
   type ReportRows = Vector[Vector[Option[String]]]
 
   def generateSpreadSheet(ids: Vector[Identifier], range: (LocalDate, LocalDate)) = 
-    for
-      names <- getNameRows(ids)
-      _ = logger.info("Fetched the company names")
+   measure {
+      for
+        names <- getNameRows(ids)
+        _ = logger.info("Fetched the company names")
 
-      data <- getDataRows(ids, range)
-      _ = logger.info("Fetched the report data")
+        data <- getDataRows(ids, range)
+        _ = logger.info("Fetched the report data")
 
-      _ = viewAsXlsx(names, data)
-      _ = logger.info("Constructed the spreadsheet")
-
-    yield ()
+        _ = viewAsXlsx(names, data)
+        _ = logger.info("Constructed the spreadsheet")
+      yield ()
+   }
 
   private def viewAsXlsx(names: ReportRows, data: ReportRows) = 
     val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }
@@ -94,3 +94,16 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
     capitalIqService.sendConcurrentRequests(
       ids => Request(ids.map(Mnemonic.IQ_COMPANY_NAME_LONG(_)))
     )
+
+
+def measure[T](codeBlock: => Future[T])
+(using logger: Logger, ec: ExecutionContext): Future[T] =
+  val t0 = System.nanoTime()
+  codeBlock.map { result => 
+    val t1 = System.nanoTime()
+
+    val elapsed = TimeUnit.SECONDS.convert(t1 - t0, TimeUnit.NANOSECONDS)
+    logger.info("Finished in: " + elapsed + "s")
+
+    result
+  }

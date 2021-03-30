@@ -46,8 +46,12 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
   - [X] split requests to capital IQ per limit, merge them together
   - [X] transform to xlsx
   - [X] handle ` (Data Unavailable,)`
-
-  - [] merge request for company names
+  - [x] merge request for company names
+  - [] recover from error per mnemonic request (?)
 - QT integration:
 
   - send data to qt data repo
+
+- CLI:
+  - [] build as a standalone script
+  - [] refine the CLI API

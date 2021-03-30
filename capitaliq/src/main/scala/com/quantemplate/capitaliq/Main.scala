@@ -1,7 +1,6 @@
 package com.quantemplate.capitaliq
 
-import java.time.*
-
+import java.time.LocalDate
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext

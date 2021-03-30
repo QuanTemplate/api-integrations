@@ -64,6 +64,10 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
         logger.error("InvalidServiceParametersError: {}", r._2.error) 
         InvalidServiceParametersError(r._2.error)
 
+      case r @ (mnemonic, MnemonicResponse("InvalidIdentifier", _)) =>
+        logger.error("InvalidServiceParametersError: {} in {}", r._2.error, mnemonic.toString) 
+        InvalidServiceParametersError(r._2.error)
+
       case (_, MnemonicResponse(error, _)) if !error.isEmpty =>
         logger.error("UnrecognizedServiceError: {}", error)
         UnrecognizedServiceError(error)
