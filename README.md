@@ -56,20 +56,3 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
     ```sh
     sbt "capitaliq/run /Users/gbielski/Projects/qt/data-ingress/CapitalIQ.xlsx"
     ```
-
-## Todo:
-
-- revenue spreadsheet:
-
-  - [x] handle API errors
-  - [x] split requests to capital IQ per limit, merge them together
-  - [x] transform to xlsx
-  - [x] handle ` (Data Unavailable,)` in data rows
-  - [x] merge request for company names
-  - [] recover from error per mnemonic request (??)
-- QT integration:
-  - [] send data to qt data repo
-
-- CLI:
-  - [] build as a standalone script
-  - [] refine the CLI API
