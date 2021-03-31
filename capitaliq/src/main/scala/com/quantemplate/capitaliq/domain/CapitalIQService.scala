@@ -1,0 +1,84 @@
+package com.quantemplate.capitaliq.domain
+
+import scala.concurrent.{ExecutionContext, Future}
+import org.slf4j.LoggerFactory
+import akka.actor.typed.ActorSystem
+import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
+import akka.util.ByteString
+import cats.syntax.option.*
+
+import com.quantemplate.capitaliq.{Config, HttpService}
+import com.quantemplate.capitaliq.domain.CapitalIQ.*
+import com.quantemplate.capitaliq.domain.CapitalIQ.RawResponse.*
+
+class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], conf: Config):
+  import CapitalIQService.*
+
+  given ExecutionContext = system.executionContext
+  lazy val logger = LoggerFactory.getLogger(getClass)
+
+  def sendConcurrentRequests(toReq: Vector[Identifier] => Request)(ids: Vector[Identifier]) = 
+    val requests = ids
+      .grouped(conf.capitaliq.mnemonicsPerRequest)
+      .toVector
+      .map(toReq.andThen(sendRequest))
+
+    Future
+      .sequence(requests)
+      .map(_.flatten)
+
+  def sendRequest(req: Request)(using ExecutionContext): Future[Vector[Response]] =
+    httpService.POST[Request, RawResponse](
+      conf.capitaliq.endpoint,
+      req, 
+      Authorization(
+        BasicHttpCredentials(
+          conf.capitaliq.credentials.username, 
+          conf.capitaliq.credentials.password
+        )
+      ).some
+    ).map(adaptRawResponse(req))
+
+  private def adaptRawResponse(req: Request)(rawRes: RawResponse) =
+    val res = rawRes.responses
+    val result = req
+      .inputRequests
+      .zipWithIndex
+      .toVector
+      .map { case (req, i) => (req, res(i)) }
+
+    val errors = collectMnemonicErrors(result)
+
+    if !errors.isEmpty then throw MnemonicsError(errors)
+    
+    result.map { case (req, res) => 
+      Response(
+        req, 
+        res.rows.get.filter(data => !(data.lift(0) == "Data Unavailable".some))
+      ) 
+    }
+
+  private def collectMnemonicErrors(result: Vector[(Mnemonic, MnemonicResponse)]) = 
+    result.collect {
+      case r @ (_, MnemonicResponse("InvalidTimePeriod", _)) =>
+        logger.error("InvalidServiceParametersError: {}", r._2.error) 
+        InvalidServiceParametersError(r._2.error)
+
+      case r @ (mnemonic, MnemonicResponse("InvalidIdentifier", _)) =>
+        logger.error("InvalidServiceParametersError: {} in {}", r._2.error, mnemonic.toString) 
+        InvalidServiceParametersError(r._2.error)
+
+      case (_, MnemonicResponse(error, _)) if !error.isEmpty =>
+        logger.error("UnrecognizedServiceError: {}", error)
+        UnrecognizedServiceError(error)
+
+      case (_, MnemonicResponse(_, rows)) if rows.isEmpty => 
+        // TODO: write show instance for Mnemonic
+        logger.error("UnexpectedEmptyRows")
+        UnexpectedEmptyRows("Mnemonic not mapped")
+    }
+
+    
+      
+object CapitalIQService:
+  case class Response(mnemonic: Mnemonic, rows: RawResponse.Rows)
