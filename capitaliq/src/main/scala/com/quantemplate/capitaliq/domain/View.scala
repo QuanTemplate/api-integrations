@@ -14,6 +14,6 @@ object View:
           Sheet(name = m.name)
             .withRows(m.rows.map(row => Row().withCellValues(row.map(_.getOrElse(blankCell)): _*)): _*)
         }: _*
-      ).saveAsXlsx(filePath) 
+      )
   
   case class SheetModel(name: String, rows: Vector[Vector[Option[String]]])

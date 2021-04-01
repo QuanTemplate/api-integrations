@@ -12,7 +12,9 @@ import cats.syntax.option.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
 
-class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSystem[_]):
+import com.quantemplate.capitaliq.qt.QTService
+
+class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using system: ActorSystem[_]):
   given ExecutionContext = system.executionContext
   given logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -31,8 +33,11 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
         data <- getDataRows(ids, range)
         _ = logger.info("Fetched the report data")
 
-        _ = viewAsXlsx(filePath, names, data)
+        workbook = viewAsXlsx(filePath, names, data)
         _ = logger.info("Constructed the spreadsheet")
+
+        _ <- qtService.uploadDataset(workbook)
+        _ = logger.info("Uploaded the spreadsheet")
       yield ()
    }.onComplete { 
      case Failure(e) => 
@@ -41,6 +46,10 @@ class RevenueReport(capitalIqService: CapitalIQService)(using system: ActorSyste
   }
 
   private def viewAsXlsx(filePath: String, names: ReportRows, data: ReportRows) = 
+    import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions.*
+    import akka.stream.scaladsl.*
+    import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
+
     val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }
     val sheetModel = Vector(View.SheetModel("Revenue", rows))
 

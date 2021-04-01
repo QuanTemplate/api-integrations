@@ -6,13 +6,21 @@ import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext
 
 import com.quantemplate.capitaliq.domain.*
+import com.quantemplate.capitaliq.qt.*
 
 @main
 def generateRevenueSheet(filePath: String) =
   given Config = Config.load()
-  given ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
+  given sys: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
 
-  val revenueReport = RevenueReport(CapitalIQService(HttpService()))
+  given ExecutionContext = sys.executionContext
+
+  val httpService = HttpService()
+
+  val revenueReport = RevenueReport(
+    CapitalIQService(httpService), 
+    QTService(httpService)
+  )
 
   revenueReport.generateSpreadSheet(
     ids = Identifiers.load(), 

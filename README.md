@@ -40,6 +40,7 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
     ```
     CAPITALIQ_API_USERNAME=apiadmin@quantemplate.com
     CAPITALIQ_API_PASSWORD=<password from dev credentials>
+    QT_ENV=dev
     ```
     and export it:
 

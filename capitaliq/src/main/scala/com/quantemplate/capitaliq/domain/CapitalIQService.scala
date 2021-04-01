@@ -4,7 +4,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
-import akka.util.ByteString
 import cats.syntax.option.*
 
 import com.quantemplate.capitaliq.{Config, HttpService}
