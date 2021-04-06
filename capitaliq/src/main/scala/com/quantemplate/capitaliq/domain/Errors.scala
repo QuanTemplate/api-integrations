@@ -1,8 +1,8 @@
 package com.quantemplate.capitaliq.domain
 
-trait DomainError extends Throwable {
+trait DomainError extends Throwable:
   def message: String
-}
+
 
 case class InvalidServiceParametersError(msg: String) extends DomainError:
   def message = s"Invalid Capital IQ API params: $msg"

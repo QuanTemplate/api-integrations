@@ -27,7 +27,7 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
       .map(_.flatten)
 
   def sendRequest(req: Request)(using ExecutionContext): Future[Vector[Response]] =
-    httpService.POST[Request, RawResponse](
+    httpService.post[Request, RawResponse](
       conf.capitaliq.endpoint,
       req, 
       Authorization(

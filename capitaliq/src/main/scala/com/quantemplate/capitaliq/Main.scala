@@ -9,24 +9,24 @@ import com.quantemplate.capitaliq.domain.*
 import com.quantemplate.capitaliq.qt.*
 
 @main
-def generateRevenueSheet(filePath: String) =
+def generateRevenueSheet() =
   given Config = Config.load()
-  given sys: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
-
-  given ExecutionContext = sys.executionContext
+  given ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
 
   val httpService = HttpService()
-
   val revenueReport = RevenueReport(
     CapitalIQService(httpService), 
     QTService(httpService)
   )
 
   revenueReport.generateSpreadSheet(
-    ids = Identifiers.load(), 
+    ids = Identifiers.loadFromResource(), 
     range = (
       LocalDate.of(1988, 12, 31), 
       LocalDate.of(2018, 12, 31)
     ),
-    filePath = filePath
+    currency = "USD",
+    orgId = "c-my-small-insuranc-ltdzfd",
+    // datasetId = "d-33oxxtejxjb3rtirccilw6nm"
+    datasetId = "d-mc6ao4re-zagaqpyipxnbvbf"
   )

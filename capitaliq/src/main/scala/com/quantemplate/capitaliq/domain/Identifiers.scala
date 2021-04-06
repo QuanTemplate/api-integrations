@@ -7,7 +7,7 @@ import com.quantemplate.capitaliq.Config
 object Identifiers:
   val commentToken = "//"
 
-  def load()(using conf: Config) = 
+  def loadFromResource()(using conf: Config) = 
     Source
       .fromResource("identifiers.txt")
       .getLines
