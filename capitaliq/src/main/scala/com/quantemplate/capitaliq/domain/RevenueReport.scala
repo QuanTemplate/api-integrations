@@ -4,7 +4,6 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.typed.ActorSystem
 import cats.syntax.option.*
@@ -42,11 +41,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
         _ <- qtService.uploadDataset(sheet, orgId, datasetId)
         _ = logger.info("Uploaded the spreadsheet")
       yield ()
-   }.onComplete { 
-     case Failure(e) => 
-      logger.error("Uncaught exception while generating the spreadsheet: {}", e.toString) 
-     case Success(_) => ()
-  }
+   }
 
   private def constructSpreadsheet(names: ReportRows, data: ReportRows): View =
     val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }

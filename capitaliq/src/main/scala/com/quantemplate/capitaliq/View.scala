@@ -28,3 +28,6 @@ class Xlsx(sheets: Vector[View.SheetModel]) extends View:
     workbook.writeToOutputStream(stream)
 
     stream.toByteArray
+
+  def toFile(filePath: String) = 
+    workbook.saveAsXlsx(filePath)
