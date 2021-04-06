@@ -31,7 +31,7 @@ class QTService(httpService: HttpService)(using system: ActorSystem[_], conf: Co
     for
       tokenRes <- getToken()
       r <- httpService.upload(
-            s"${conf.quantemplate.api.baseUrl}/external/v1/organisations/$orgId/datasets/$datasetId",
+            s"${conf.quantemplate.api.baseUrl}/v1/organisations/$orgId/datasets/$datasetId",
             stream,
             Authorization(
               OAuth2BearerToken(
