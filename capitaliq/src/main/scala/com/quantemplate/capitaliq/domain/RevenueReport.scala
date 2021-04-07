@@ -11,7 +11,6 @@ import cats.syntax.option.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
 import com.quantemplate.capitaliq.{View, Xlsx}
-
 import com.quantemplate.capitaliq.qt.QTService
 
 class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using system: ActorSystem[_]):
@@ -54,8 +53,8 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
   ): Future[ReportRows] =
     import range.{ _1 => start, _2 => end }
 
-    val periodType = "IQ_FY" back (end.getYear - start.getYear - 1)
-    val asOfDate =  end.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")).some
+    val periodType = "IQ_FY" back (end.getYear - start.getYear)
+    val asOfDate = end.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")).some
 
     getReportData(periodType, currency, asOfDate)(ids).map { responses => 
       val headerRange = (start.getYear to end.getYear).map(_.toString).toVector
