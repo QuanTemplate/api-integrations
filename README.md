@@ -50,9 +50,24 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
 2. run the script
 
     ```sh
-    sbt "capitaliq/run <absolute path to excel file>"
+    sbt "capitaliq/run"
     ```
-    example:
-    ```sh
-    sbt "capitaliq/run /Users/gbielski/Projects/qt/data-ingress/CapitalIQ.xlsx"
-    ```
+
+## Packaging
+
+creating a fat jar
+```
+sbt capitaliq/assembly
+```
+
+## Running the program
+
+**Prerequisites** - you need to have appropriate env variables set up, see the [dev guide](#development) for more info
+
+
+### Generating a total revenue report from the CapitalIQ data and uploading it to the Quantemplate dataset
+
+```sh
+cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC1/capitaliq-assembly-1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+```
+

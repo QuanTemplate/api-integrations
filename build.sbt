@@ -30,6 +30,9 @@ lazy val capitaliq = (project in file("capitaliq"))
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
       "org.typelevel" %% "cats-core" % "2.4.2",
-      "com.norbitltd" %% "spoiwo" % "1.7.0"
-    ).map(_.withDottyCompat(scalaVersion.value))
+      "com.norbitltd" %% "spoiwo" % "1.7.0",
+      "com.github.scopt" %% "scopt" % "4.0.1"
+    ).map(_.withDottyCompat(scalaVersion.value)),
   )
+
+Compile / run / fork := true

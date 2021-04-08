@@ -7,10 +7,11 @@ import com.quantemplate.capitaliq.Config
 object Identifiers:
   val commentToken = "//"
 
-  def load()(using conf: Config) = 
-    Source
-      .fromResource("identifiers.txt")
-      .getLines
+  def apply(ids: String*) = 
+    ids.map(CapitalIQ.Identifier(_)).toVector
+    
+  def loadFromStdin() = 
+    Source.stdin.getLines
       .filter(!_.startsWith(commentToken))
       .map(CapitalIQ.Identifier(_))
       .toVector
