@@ -7,7 +7,7 @@ import scala.concurrent.Future
 import scopt.OParser
 import org.slf4j.LoggerFactory
 
-import com.quantemplate.capitaliq.domain.*
+import com.quantemplate.capitaliq.domain.Identifiers
 
 object Main:
   lazy val logger = LoggerFactory.getLogger(getClass)
