@@ -1,17 +1,20 @@
 package com.quantemplate.capitaliq.domain
 
-trait DomainError extends Throwable {
-  def message: String
-}
+trait DomainError extends Throwable
+
 
 case class InvalidServiceParametersError(msg: String) extends DomainError:
-  def message = s"Invalid Capital IQ API params: $msg"
+  override def toString = s"Invalid Capital IQ API params: $msg"
 
 case class UnexpectedEmptyRows(msg: String) extends DomainError:
-  def message = s"Capital IQ API has returned no rows: $msg"
+  override def toString = s"Capital IQ API has returned no rows: $msg"
 
 case class UnrecognizedServiceError(msg: String) extends DomainError:
-  def message = s"Unrecognized Capital IQ API error: $msg"
+  override def toString = s"Unrecognized Capital IQ API error: $msg"
 
 case class MnemonicsError(errors: Seq[DomainError]) extends DomainError:
-  def message = errors.map(_.message).mkString
+  override def toString = errors.mkString
+
+case object DailyMnemonicLimitReachedError extends DomainError:
+  override def toString = s"Reached daily limit of 24000 requested mnemonics"
+  

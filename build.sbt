@@ -33,3 +33,5 @@ lazy val capitaliq = (project in file("capitaliq"))
       "com.norbitltd" %% "spoiwo" % "1.7.0"
     ).map(_.withDottyCompat(scalaVersion.value))
   )
+
+Compile / run / fork := true
