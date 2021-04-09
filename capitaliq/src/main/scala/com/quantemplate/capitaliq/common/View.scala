@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq
+package com.quantemplate.capitaliq.common
 
 import java.io.ByteArrayOutputStream
 import com.norbitltd.spoiwo.model.{Row, Sheet, Workbook}

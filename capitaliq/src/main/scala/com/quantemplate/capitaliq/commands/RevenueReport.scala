@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq.domain
+package com.quantemplate.capitaliq.commands
 
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -9,13 +9,14 @@ import akka.actor.typed.ActorSystem
 import cats.syntax.option.*
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
+import com.quantemplate.capitaliq.domain.CapitalIQService
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
-import com.quantemplate.capitaliq.{View, Xlsx}
+import com.quantemplate.capitaliq.common.{View, Xlsx}
 import com.quantemplate.capitaliq.qt.QTService
 
 class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using system: ActorSystem[_]):
   given ExecutionContext = system.executionContext
-  given logger: Logger = LoggerFactory.getLogger(getClass)
+  given logger: Logger = system.log
 
   type ReportRows = Vector[Vector[Option[String]]]
 

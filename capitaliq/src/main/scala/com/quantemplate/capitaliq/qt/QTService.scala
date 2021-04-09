@@ -8,7 +8,7 @@ import cats.syntax.option.*
 import akka.http.scaladsl.model.FormData
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 
-import com.quantemplate.capitaliq.{View, Config, HttpService}
+import com.quantemplate.capitaliq.common.{View, Config, HttpService}
 
 class QTService(httpService: HttpService)(using system: ActorSystem[_], conf: Config):
   import QTService.*

@@ -1,12 +1,11 @@
 package com.quantemplate.capitaliq.domain
 
 import scala.concurrent.{ExecutionContext, Future}
-import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
 import cats.syntax.option.*
 
-import com.quantemplate.capitaliq.{Config, HttpService}
+import com.quantemplate.capitaliq.common.{Config, HttpService}
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.RawResponse.*
 
@@ -14,7 +13,7 @@ class CapitalIQService(httpService: HttpService)(using system: ActorSystem[_], c
   import CapitalIQService.*
 
   given ExecutionContext = system.executionContext
-  lazy val logger = LoggerFactory.getLogger(getClass)
+  lazy val logger = system.log
 
   def sendConcurrentRequests(toReq: Vector[Identifier] => Request)(ids: Vector[Identifier]) = 
     val requests = ids

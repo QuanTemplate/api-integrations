@@ -2,8 +2,6 @@ package com.quantemplate.capitaliq.domain
 
 import scala.io.Source
 
-import com.quantemplate.capitaliq.Config
-
 object Identifiers:
   val commentToken = "//"
 

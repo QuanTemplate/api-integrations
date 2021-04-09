@@ -68,7 +68,7 @@ Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify t
 3. run the script
 
     ```sh
-    sbt "capitaliq/run"
+    sbt capitaliq/run
     ```
 
 ## Packaging

@@ -33,6 +33,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       "com.norbitltd" %% "spoiwo" % "1.7.0",
       "com.github.scopt" %% "scopt" % "4.0.1"
     ).map(_.withDottyCompat(scalaVersion.value)),
+    assembly / mainClass := Some("com.quantemplate.capitaliq.Main")
   )
 
 Compile / run / fork := true

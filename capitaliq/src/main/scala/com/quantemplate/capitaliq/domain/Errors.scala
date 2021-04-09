@@ -2,7 +2,6 @@ package com.quantemplate.capitaliq.domain
 
 trait DomainError extends Throwable
 
-
 case class InvalidServiceParametersError(msg: String) extends DomainError:
   override def toString = s"Invalid Capital IQ API params: $msg"
 
