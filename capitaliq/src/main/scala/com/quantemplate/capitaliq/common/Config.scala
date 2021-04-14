@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq
+package com.quantemplate.capitaliq.common
 
 import com.typesafe.config.ConfigFactory
 

@@ -1,20 +1,14 @@
 package com.quantemplate.capitaliq
 
-import java.time.LocalDate
+import org.slf4j.LoggerFactory
 
-import com.quantemplate.capitaliq.domain.Identifiers
+import com.quantemplate.capitaliq.commands.*
 
-// TODO: build proper CLI
-@main
-def generateRevenueSheet = withRevenueReport {
-  _.generateSpreadSheet(
-    ids = Identifiers.loadFromResource(),
-    range = (
-      LocalDate.of(1988, 12, 31), 
-      LocalDate.of(2018, 12, 31)
-    ),
-    currency = "USD",
-    orgId = "c-my-small-insuranc-ltdzfd",
-    datasetId = "d-e4tf3yyxerabcvicidv5oyey"
-  )
-}
+object Main:
+  lazy val logger = LoggerFactory.getLogger(getClass)
+
+  def main(args: Array[String]): Unit = args match
+    case Array("generateRevenueReport", _*) => RevenueReportCmd.run(args)
+    case _ => 
+      logger.error("Unsupported command")
+      System.exit(1)

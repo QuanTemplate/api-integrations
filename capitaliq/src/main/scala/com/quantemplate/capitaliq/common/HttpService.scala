@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq
+package com.quantemplate.capitaliq.common
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.io.ByteArrayOutputStream
