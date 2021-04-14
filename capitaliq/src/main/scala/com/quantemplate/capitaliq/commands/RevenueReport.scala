@@ -14,9 +14,8 @@ import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
 import com.quantemplate.capitaliq.common.{View, Xlsx}
 import com.quantemplate.capitaliq.qt.QTService
 
-class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using system: ActorSystem[_]):
-  given ExecutionContext = system.executionContext
-  given logger: Logger = system.log
+class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using ExecutionContext):
+  given logger: Logger = LoggerFactory.getLogger(getClass)
 
   type ReportRows = Vector[Vector[Option[String]]]
 

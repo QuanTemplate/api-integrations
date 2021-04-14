@@ -10,10 +10,9 @@ import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 
 import com.quantemplate.capitaliq.common.{View, Config, HttpService}
 
-class QTService(httpService: HttpService)(using system: ActorSystem[_], conf: Config):
+class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Config):
   import QTService.*
-
-  given ExecutionContext = system.executionContext
+  
   lazy val logger = LoggerFactory.getLogger(getClass)
 
   def uploadDataset(view: View, orgId: String, datasetId: String) =

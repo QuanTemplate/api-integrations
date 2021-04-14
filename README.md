@@ -68,7 +68,7 @@ An example set of identifiers could be found in the `./data/capitaliq-identifier
 1. create `api-client` user for a given env
 
     You can use the [`create-api-user`](https://github.com/QuanTemplate/scripts/tree/master/create-api-user) script.
-    If you are not pare of the Quantemplate team, then please reach out to us at support@quantemplate.com
+    If you are not member of the Quantemplate team, then please reach out to us at support@quantemplate.com
 
 2. Create `.env` file in the project root with the following variables:
 
