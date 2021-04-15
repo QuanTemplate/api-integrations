@@ -1,14 +1,14 @@
 package com.quantemplate.capitaliq.domain
 
-import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
-import io.circe.syntax.*
-import cats.syntax.traverse.{*, given}
-import cats.instances.vector.{*, given}
+import io.circe.{ Encoder, Decoder, Json }
+import io.circe.syntax.given
+import cats.syntax.traverse.given
 
 object CapitalIQ:
   opaque type Identifier = String
   object Identifier:
     def apply(s: String): Identifier = s
+    given Decoder[Identifier] = Decoder.decodeString.map(apply(_))
   extension (i: Identifier)
     def unwrap: String = i
 

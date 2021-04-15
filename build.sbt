@@ -25,13 +25,15 @@ lazy val capitaliq = (project in file("capitaliq"))
       // circe
       "io.circe" %% "circe-core" % CirceVersion,
       "io.circe" %% "circe-parser" % CirceVersion,
+      "io.circe" %% "circe-yaml" % "0.13.1",
       // misc
       "org.scalatest" %% "scalatest" % "3.1.0" % Test,
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
       "org.typelevel" %% "cats-core" % "2.4.2",
       "com.norbitltd" %% "spoiwo" % "1.7.0",
-      "com.github.scopt" %% "scopt" % "4.0.1"
+      "com.github.scopt" %% "scopt" % "4.0.1",
+      "com.lihaoyi" %% "os-lib" % "0.7.4"
     ).map(_.withDottyCompat(scalaVersion.value)),
     assembly / mainClass := Some("com.quantemplate.capitaliq.Main")
   )

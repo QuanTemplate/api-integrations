@@ -17,6 +17,16 @@ class HttpService(using system: ActorSystem[_]):
 
   given ExecutionContext = system.executionContext
 
+  def get[B: Decoder](
+    endpoint: String,
+    auth: Option[Authorization] 
+  ): Future[B] =
+    for
+      res <- GET(endpoint, auth)
+      body <- getResponseBody(res)
+      result <- Unmarshal(body).to[B]
+    yield result
+
   def post[B: Decoder](
     endpoint: String, 
     req: RequestEntity, 
@@ -59,6 +69,15 @@ class HttpService(using system: ActorSystem[_]):
         method = HttpMethods.POST,
         uri = endpoint,
         entity = entity,
+        headers = auth.map(Seq(_)).getOrElse(Seq.empty)
+      )
+    )
+
+  private def GET(endpoint: String, auth: Option[Authorization]) = 
+    Http().singleRequest(
+      HttpRequest(
+        method = HttpMethods.GET,
+        uri = endpoint,
         headers = auth.map(Seq(_)).getOrElse(Seq.empty)
       )
     )

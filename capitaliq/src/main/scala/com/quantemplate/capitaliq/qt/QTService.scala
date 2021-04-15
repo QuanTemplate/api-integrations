@@ -15,8 +15,12 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
   
   lazy val logger = LoggerFactory.getLogger(getClass)
 
+  def datasetEndpoint(orgId: String, datasetId: String) = 
+    s"${conf.quantemplate.api.baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
+
+
   def uploadDataset(view: View, orgId: String, datasetId: String) =
-    val endpoint = s"${conf.quantemplate.api.baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
+    val endpoint = datasetEndpoint(orgId, datasetId)
 
     for
       tokenRes <- getToken()
@@ -33,6 +37,18 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       case other => 
         throw DatasetUploadError(s"${other.statusCode}: ${other.body}")
 
+  def downloadADataset(orgId: String, datasetId: String) =
+    val endpoint = datasetEndpoint(orgId, datasetId)
+
+    for
+      tokenRes <- getToken()
+      res <- httpService.get[String](
+        endpoint,
+        Authorization(OAuth2BearerToken(tokenRes.accessToken)).some
+      )
+    yield ()
+
+
   def getToken(): Future[TokenResponse] = 
     httpService.post[TokenResponse](
       conf.quantemplate.auth.endpoint,
@@ -43,6 +59,7 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       ).toEntity,
       None
     )
+    
 
 object QTService:
   case class TokenResponse(accessToken: String)

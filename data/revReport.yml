@@ -1,0 +1,17 @@
+command: generateRevenueReport
+params:
+  orgId: c-my-small-insuranc-ltdzfd
+  datasetId: d-e4tf3yyxerabcvicidv5oyey
+  currency: USD
+  from: 1988-12-31
+  to: 2018-12-31
+
+  # should handle loading identifiers from local file system, QT dataset, inline ones, STDIN
+  identifiers:
+    local: ../capitaliq-identifiers.txt
+    dataset: d-e4tf3yyxerabcvicidv5oyey
+    inline:
+      - IQ121238
+      - IQ598807
+      - IQ723344
+      - IQ956057

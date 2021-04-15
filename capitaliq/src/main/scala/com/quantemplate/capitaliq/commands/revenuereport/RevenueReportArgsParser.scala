@@ -1,29 +1,45 @@
-package com.quantemplate.capitaliq.commands
+package com.quantemplate.capitaliq.commands.revenuereport
 
 import java.util.Calendar
+import java.time.ZoneId
 import scopt.OParser
+
+import com.quantemplate.capitaliq.domain.CapitalIQ.Identifier
+import com.quantemplate.capitaliq.domain.Identifiers
 
 object RevenueReportArgsParser:
   // OParser requires default args
-  case class Config(
+  case class CliConfig(
     orgId: String = "",
     datasetId: String = "",
     from: Calendar = Calendar.getInstance,
     to: Calendar = Calendar.getInstance,
     currency: String = "",
     identifiers: Option[Vector[String]] = None
-  )
-  
-  def parse(args: Array[String]) = OParser.parse(parser, args, Config()) 
+  ):
+    def toCmdConfig = CmdConfig(
+      orgId = orgId,
+      datasetId = datasetId,
+      from = fromCalendar(from),
+      to = fromCalendar(to),
+      currency = currency,
+      identifiers = identifiers.map(Identifiers(_*))
+    ) 
 
-  private lazy val builder = OParser.builder[Config]
+    private def fromCalendar(cal: Calendar) =
+      cal.getTime.toInstant.atZone(ZoneId.systemDefault).toLocalDate
+
+
+  def parse(args: Array[String]) = OParser.parse(parser, args, CliConfig()) 
+
+  private lazy val builder = OParser.builder[CliConfig]
   private lazy val parser = 
     import builder.*
 
     OParser.sequence(
       programName("capitaliq-qt integration"),
       head("capitaliq-qt", "0.0.1"),
-      cmd("generateRevenueReport")
+      cmd(revenueReportCmdName)
         .children(
           opt[String]("orgId")
             .action((id, c) => c.copy(orgId = id))
