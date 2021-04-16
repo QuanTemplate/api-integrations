@@ -1,13 +1,10 @@
 package com.quantemplate.capitaliq.commands.revenuereport
 
-import java.nio.file.Paths
 import java.time.LocalDate
-import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
+import io.circe.Decoder
 import io.circe.yaml.{parser as ymlParser}
 import io.circe.syntax.given
 import cats.syntax.apply.given
-import cats.instances.either.given
-import scopt.OParser
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.Identifier
 import com.quantemplate.capitaliq.commands.ConfigDef
@@ -20,7 +17,7 @@ case class RevenueReportConfigDef(
   to: LocalDate,
   identifiers: Option[RevenueReportConfigDef.Identifiers]
 ) extends ConfigDef:
-  def toCmdConfig(loadedIds: Option[Vector[Identifier]]) = CmdConfig(
+  def toCmdConfig(loadedIds: => Vector[Identifier]) = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,
     from = from,

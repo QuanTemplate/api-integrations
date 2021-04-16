@@ -8,7 +8,6 @@ import com.quantemplate.capitaliq.domain.CapitalIQ.Identifier
 import com.quantemplate.capitaliq.domain.Identifiers
 
 object RevenueReportArgsParser:
-  // OParser requires default args
   case class CliConfig(
     orgId: String = "",
     datasetId: String = "",
@@ -17,18 +16,17 @@ object RevenueReportArgsParser:
     currency: String = "",
     identifiers: Option[Vector[String]] = None
   ):
-    def toCmdConfig = CmdConfig(
+    def toCmdConfig(fallbackIds: => Vector[Identifier]) = CmdConfig(
       orgId = orgId,
       datasetId = datasetId,
       from = fromCalendar(from),
       to = fromCalendar(to),
       currency = currency,
-      identifiers = identifiers.map(Identifiers(_*))
+      identifiers = identifiers.map(Identifiers(_*)).getOrElse(fallbackIds)
     ) 
 
     private def fromCalendar(cal: Calendar) =
       cal.getTime.toInstant.atZone(ZoneId.systemDefault).toLocalDate
-
 
   def parse(args: Array[String]) = OParser.parse(parser, args, CliConfig()) 
 
@@ -40,6 +38,7 @@ object RevenueReportArgsParser:
       programName("capitaliq-qt integration"),
       head("capitaliq-qt", "0.0.1"),
       cmd(revenueReportCmdName)
+        .text("Generates a revenue report from CapitalIQ data and uploads it to the Quantemplate dataset")
         .children(
           opt[String]("orgId")
             .action((id, c) => c.copy(orgId = id))

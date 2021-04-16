@@ -10,5 +10,5 @@ case class CmdConfig(
   from: LocalDate,
   to: LocalDate,
   currency: String,
-  identifiers: Option[Vector[Identifier]]
+  identifiers: Vector[Identifier]
 )

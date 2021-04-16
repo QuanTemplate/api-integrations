@@ -12,20 +12,21 @@ import akka.util.ByteString
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport.*
 import io.circe.{Encoder, Decoder}
 
+// TODO: improve error handling by wrapping responses in Either / Try
 class HttpService(using system: ActorSystem[_]):
   import HttpService.*
 
   given ExecutionContext = system.executionContext
 
-  def get[B: Decoder](
+  def get(
     endpoint: String,
     auth: Option[Authorization] 
-  ): Future[B] =
+  ): Future[String] =
     for
       res <- GET(endpoint, auth)
       body <- getResponseBody(res)
-      result <- Unmarshal(body).to[B]
-    yield result
+      // result <- Unmarshal(body).to[B]
+    yield body.utf8String
 
   def post[B: Decoder](
     endpoint: String, 
@@ -50,15 +51,15 @@ class HttpService(using system: ActorSystem[_]):
       result <- Unmarshal(body).to[B]
     yield result
 
-  def upload(
+  def post(
     endpoint: String, 
     bytes: Array[Byte], 
-    auth: Option[Authorization] = None
-  ): Future[UploadResponse] = 
+    auth: Option[Authorization]
+  ): Future[Response] = 
     for
       res <- POST(endpoint, HttpEntity(bytes), auth)
       body <- getResponseBody(res)
-    yield HttpService.UploadResponse(res.status.intValue, body.utf8String)
+    yield HttpService.Response(res.status.intValue, body.utf8String)
 
   private def getResponseBody(res: HttpResponse) = 
     res.entity.dataBytes.runFold(ByteString.empty)(_ ++ _)
@@ -83,4 +84,4 @@ class HttpService(using system: ActorSystem[_]):
     )
 
 object HttpService:
-  case class UploadResponse(statusCode: Int, body: String)
+  case class Response(statusCode: Int, body: String)

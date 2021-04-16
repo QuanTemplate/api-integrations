@@ -3,12 +3,22 @@ package com.quantemplate.capitaliq.domain
 import io.circe.{ Encoder, Decoder, Json }
 import io.circe.syntax.given
 import cats.syntax.traverse.given
+import cats.syntax.applicative.given
 
 object CapitalIQ:
   opaque type Identifier = String
   object Identifier:
+    val prefix = "IQ"
+
     def apply(s: String): Identifier = s
-    given Decoder[Identifier] = Decoder.decodeString.map(apply(_))
+
+    // this might use some improved validation
+    def isValid(s: String) = s.startsWith(prefix)
+
+    given Decoder[Identifier] = Decoder.decodeString
+      .ensure(isValid, "Not a valid CapitalIQ identifier")
+      .map(Identifier(_))
+
   extension (i: Identifier)
     def unwrap: String = i
 
