@@ -20,6 +20,3 @@ object Identifiers:
         .toVector
         .map(_.split(',').headOption.getOrElse("")): _*
     )
-    
-  def loadFromStdin() = 
-    Identifiers(Source.stdin.getLines.toVector: _*)

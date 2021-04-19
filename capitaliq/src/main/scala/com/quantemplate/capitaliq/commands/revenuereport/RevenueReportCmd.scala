@@ -1,5 +1,6 @@
 package com.quantemplate.capitaliq.commands.revenuereport
 
+import java.nio.file.Path
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext
@@ -15,8 +16,8 @@ import com.quantemplate.capitaliq.qt.*
 
 class RevenueReportCmd:
   given Config = Config.load()
-  given sys: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
-  given ExecutionContext = sys.executionContext
+  given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
+  given ExecutionContext = system.executionContext
 
   lazy val logger = LoggerFactory.getLogger(getClass)
 
@@ -29,7 +30,7 @@ class RevenueReportCmd:
       .map(_.toCmdConfig(loadIdentifiersFromStdin()))
       .map(run)
 
-  def fromConfigFile(config: RevenueReportConfigDef, configPath: os.Path) = 
+  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path) = 
     loadIdentifiersFromConfig(config, configPath)
       .map(_.getOrElse(loadIdentifiersFromStdin()))
       .map(config.toCmdConfig(_))
@@ -38,34 +39,51 @@ class RevenueReportCmd:
   private def loadIdentifiersFromStdin() = {
     logger.info("Loading the Capital IQ identifiers from the STDIN")
 
-    Identifiers.loadFromStdin()
+    IO.stdin(_.getLines.toVector) match
+      case Success(ids) => Identifiers(ids: _*)
+      case Failure(err) =>
+        logger.error("Could not load the Capital IQ identifiers from the STDIN. Aborting.") 
+        throw err
   }
 
-  private def loadIdentifiersFromConfig(config: RevenueReportConfigDef, configPath: os.Path) =
+  private def loadIdentifiersFromConfig(config: RevenueReportConfigDef, configPath: Path) =
     config.identifiers
       .flatMap(_.dataset)
-      .map(loadIdentifiersFromDataset(config.orgId, _))
+      .map(loadIdentifiersFromDataset(config.orgId))
       .sequence
       .map { remoteIds => 
         val inlineIds = config.identifiers.flatMap(_.inline)
-        val localIds = config.identifiers.flatMap(_.local).map { rawPath =>
-          Identifiers(
-            os.read.lines(getPath(rawPath, configPath / os.up)): _*
-          )
-        }
+        val localIds = config.identifiers
+          .flatMap(_.local)
+          .flatMap(loadIdentifiersFromLocalFile(configPath))
 
         (inlineIds ++ localIds ++ remoteIds).reduceOption(_ ++ _)
       }
 
-  private def loadIdentifiersFromDataset(orgId: String, datasetId: String) =
+  private def loadIdentifiersFromLocalFile(configPath: Path)(rawPath: String) =
+    // assuming the config path is a base for resolving the file path of identifiers
+    val idsPath = configPath.getParent.resolve(IO.toPath(rawPath))
+
+    IO.readLines(idsPath)
+      .recover {
+        case err: Throwable =>
+          logger.warn("Could not load the Capital IQ identifiers from the local file {}", err)
+          Vector.empty[String]
+      }
+      .toOption
+      .map(Identifiers(_: _*))
+      
+
+  private def loadIdentifiersFromDataset(datasetId: String)(orgId: String) =
     qtService.downloadDataset(orgId, datasetId)
       .map(Identifiers.loadFromCsvString)
+      .map { ids => 
+        logger.info("Loaded CapitalIQ identifiers from remote dataset")
+        ids
+      }
       .recover { 
         case e: Throwable => 
-          logger.warn("Could not load the identifiers from the remote dataset")
-          println(("err", e))
-          e.printStackTrace()
-
+          logger.warn("Could not load the CapitalIQ identifiers from the remote dataset. Defaulting to local ones.", e)
           Vector.empty[CapitalIQ.Identifier]
       }
 

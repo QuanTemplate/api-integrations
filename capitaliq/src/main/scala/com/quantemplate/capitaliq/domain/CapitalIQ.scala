@@ -147,15 +147,15 @@ object CapitalIQ:
 
     case class MnemonicResponse(error: String, rows: Option[Rows])
     object MnemonicResponse:
-      given Decoder[RawResponse.MnemonicResponse] = Decoder.instance[RawResponse.MnemonicResponse] { cursor =>
+      given Decoder[RawResponse.MnemonicResponse] = Decoder { c =>
         for 
-          error <- cursor.get[String]("ErrMsg")
-          jsonRows <- cursor.get[Option[Vector[Json]]]("Rows")
+          error <- c.get[String]("ErrMsg")
+          jsonRows <- c.get[Option[Vector[Json]]]("Rows")
           rows <- jsonRows.traverse(_.traverse(_.hcursor.get[Vector[String]]("Row")))
         yield MnemonicResponse(error, rows)
       }
 
-    given Decoder[RawResponse] = Decoder.instance[RawResponse](
+    given Decoder[RawResponse] = Decoder(
       _.get[Vector[RawResponse.MnemonicResponse]]("GDSSDKResponse").map(RawResponse(_))
     )
 

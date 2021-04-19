@@ -1,6 +1,7 @@
 package com.quantemplate.capitaliq.commands
 
 import java.time.LocalDate
+import java.nio.file.Path
 import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
 import io.circe.yaml.{parser as ymlParser}
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ object ConfigDefInterpreterCmd:
   lazy val logger = LoggerFactory.getLogger(getClass)
 
   def fromCli(args: Array[String]) = ConfigArgsParser.parse(args).map { cliConfig =>
-    val configPath = getPath(cliConfig.path)
+    val configPath = IO.absolutePath(cliConfig.path)
 
     loadConfig(configPath).bimap(
       err => logger.error("Could not parse the config file", err),
@@ -26,10 +27,11 @@ object ConfigDefInterpreterCmd:
     )
   }
 
-private def loadConfig(path: os.Path) =
-  val yml = os.read(path)
-
-  ymlParser.parse(yml).flatMap(_.as[ConfigDef])
+private def loadConfig(path: Path) =
+  IO.readAll(path)
+    .toEither
+    .flatMap(ymlParser.parse(_))
+    .flatMap(_.as[ConfigDef])
 
 given Decoder[ConfigDef] = Decoder.instance[ConfigDef] { c => 
   c.get[String]("command").flatMap { 

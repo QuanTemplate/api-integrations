@@ -27,7 +27,7 @@ case class RevenueReportConfigDef(
   )
 
 object RevenueReportConfigDef:
-  given Decoder[RevenueReportConfigDef] = Decoder.instance[RevenueReportConfigDef] { c => 
+  given Decoder[RevenueReportConfigDef] = Decoder { c => 
     (
       c.get[String]("orgId"),
       c.get[String]("datasetId"),
@@ -45,7 +45,7 @@ object RevenueReportConfigDef:
   )
 
   object Identifiers:
-    given Decoder[Identifiers] = Decoder.instance[Identifiers] { c => 
+    given Decoder[Identifiers] = Decoder { c => 
       (
         c.get[Option[String]]("local"),
         c.get[Option[String]]("dataset"),
