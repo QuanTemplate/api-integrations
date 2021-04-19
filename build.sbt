@@ -36,7 +36,7 @@ lazy val capitaliq = (project in file("capitaliq"))
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
-      "org.mockito" % "mockito-core" % "3.9.0"
+      "org.mockito" % "mockito-core" % "3.9.0" % Test
     ),
 
     // native scala 3 deps
@@ -44,7 +44,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       "org.scalameta" %% "munit" % "0.7.23" % Test
     ),
 
-    assembly / mainClass := Some("com.quantemplate.capitaliq.Main")
+    assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
   )
 
 Compile / run / fork := true

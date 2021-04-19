@@ -2,7 +2,7 @@
 
 Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) leveraging the [Quantemplate Data Ingress API](https://quantemplate.readme.io/docs/getting-started#-data-ingress).
 
-If you need help please contact as at support@quantemplate.com
+If you need help please contact us at support@quantemplate.com
 
 
 # Capital IQ
@@ -26,9 +26,18 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
 - Generating a total revenue report from the CapitalIQ data and uploading it to the Quantemplate dataset
 
-    ```sh
-    cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC1/capitaliq-assembly-1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
-    ```
+    - with yaml config:
+        ```sh
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-1.0.jar apply ./data/revReport.yml
+        ```
+
+        Check out the [config file](./data/revReport.yml)
+
+
+    - with CLI args:
+        ```sh
+        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+        ```
 
 
 

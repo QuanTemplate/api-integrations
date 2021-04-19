@@ -88,9 +88,15 @@ class RevenueReportCmd:
       }
 
   private def run(config: CmdConfig) =
+    val ids = config.identifiers.distinct
+
+    if ids.isEmpty then 
+      logger.error("No valid CapitalIQ identifiers were provided. Aborting")
+      Runtime.getRuntime.halt(1)
+
     revenueReport
       .generateSpreadSheet(
-        ids = config.identifiers.distinct,
+        ids = ids,
         range = (
           config.from,
           config.to
