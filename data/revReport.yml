@@ -9,8 +9,8 @@ params:
     # local: /Users/gbielski/Projects/qt/data-ingress/data/capitaliq-identifiers.txt
     # local: ./capitaliq-identifiers.txt
     # dataset: d-pjuq6lofrnbszq5zntfy4rvv
-    # inline:
-      # - IQ121238
+    inline:
+      - IQ121238
       # - IQ598807
       # - IQ723344
       # - IQ956057

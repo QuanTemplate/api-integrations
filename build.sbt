@@ -1,7 +1,7 @@
 name := "data-ingress"
 
 ThisBuild / organization := "com.quantemplate"
-ThisBuild / scalaVersion := "3.0.0-RC1"
+ThisBuild / scalaVersion := "3.0.0-RC2"
 ThisBuild / version := "1.0"
 
 val AkkaVersion = "2.6.12"
@@ -27,13 +27,23 @@ lazy val capitaliq = (project in file("capitaliq"))
       "io.circe" %% "circe-parser" % CirceVersion,
       "io.circe" %% "circe-yaml" % "0.13.1",
       // misc
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.typesafe" % "config" % "1.4.1",
       "org.typelevel" %% "cats-core" % "2.4.2",
       "com.norbitltd" %% "spoiwo" % "1.7.0",
       "com.github.scopt" %% "scopt" % "4.0.1",
-    ).map(_.withDottyCompat(scalaVersion.value)),
+    ).map(_.cross(CrossVersion.for3Use2_13)),
+    
+    // java deps
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
+      "com.typesafe" % "config" % "1.4.1",
+      "org.mockito" % "mockito-core" % "3.9.0"
+    ),
+
+    // native scala 3 deps
+    libraryDependencies ++= Seq(
+      "org.scalameta" %% "munit" % "0.7.23" % Test
+    ),
+
     assembly / mainClass := Some("com.quantemplate.capitaliq.Main")
   )
 

@@ -25,7 +25,6 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- GET(endpoint, auth)
       body <- getResponseBody(res)
-      // result <- Unmarshal(body).to[B]
     yield body.utf8String
 
   def post[B: Decoder](
