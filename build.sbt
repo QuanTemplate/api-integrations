@@ -1,8 +1,8 @@
-name := "data-ingress"
+name := "api-integrations"
 
 ThisBuild / organization := "com.quantemplate"
 ThisBuild / scalaVersion := "3.0.0-RC2"
-ThisBuild / version := "1.0"
+ThisBuild / version := "0.1.0"
 
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.4"

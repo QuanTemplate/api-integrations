@@ -1,6 +1,6 @@
-# data-ingress
+# api-integrations
 
-Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) leveraging the [Quantemplate Data Ingress API](https://quantemplate.readme.io/docs/getting-started#-data-ingress).
+Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) leveraging the [Quantemplate API](https://quantemplate.readme.io/docs/getting-started).
 
 If you need help please contact us at support@quantemplate.com
 
@@ -28,7 +28,7 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-1.0.jar apply ./data/revReport.yml
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.0.jar apply ./data/revReport.yml
         ```
 
         Check out the [config file](./data/revReport.yml)
@@ -36,7 +36,7 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with CLI args:
         ```sh
-        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
         ```
 
 
