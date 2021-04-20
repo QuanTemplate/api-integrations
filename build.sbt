@@ -1,8 +1,8 @@
-name := "data-ingress"
+name := "api-integrations"
 
 ThisBuild / organization := "com.quantemplate"
-ThisBuild / scalaVersion := "3.0.0-RC1"
-ThisBuild / version := "1.0"
+ThisBuild / scalaVersion := "3.0.0-RC2"
+ThisBuild / version := "0.1.0"
 
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.4"
@@ -25,15 +25,26 @@ lazy val capitaliq = (project in file("capitaliq"))
       // circe
       "io.circe" %% "circe-core" % CirceVersion,
       "io.circe" %% "circe-parser" % CirceVersion,
+      "io.circe" %% "circe-yaml" % "0.13.1",
       // misc
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.typesafe" % "config" % "1.4.1",
       "org.typelevel" %% "cats-core" % "2.4.2",
       "com.norbitltd" %% "spoiwo" % "1.7.0",
-      "com.github.scopt" %% "scopt" % "4.0.1"
-    ).map(_.withDottyCompat(scalaVersion.value)),
-    assembly / mainClass := Some("com.quantemplate.capitaliq.Main")
+      "com.github.scopt" %% "scopt" % "4.0.1",
+    ).map(_.cross(CrossVersion.for3Use2_13)),
+    
+    // java deps
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
+      "com.typesafe" % "config" % "1.4.1",
+      "org.mockito" % "mockito-core" % "3.9.0" % Test
+    ),
+
+    // native scala 3 deps
+    libraryDependencies ++= Seq(
+      "org.scalameta" %% "munit" % "0.7.23" % Test
+    ),
+
+    assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
   )
 
 Compile / run / fork := true

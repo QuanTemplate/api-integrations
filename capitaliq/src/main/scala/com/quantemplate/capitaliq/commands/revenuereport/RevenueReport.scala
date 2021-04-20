@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq.commands
+package com.quantemplate.capitaliq.commands.revenuereport
 
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -51,7 +51,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
     range: (LocalDate, LocalDate),
     currency: String
   ): Future[ReportRows] =
-    import range.{ _1 => start, _2 => end }
+    import range.{ _1 as start, _2 as end }
 
     val periodType = "IQ_FY" back (end.getYear - start.getYear)
     val asOfDate = end.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")).some

@@ -35,7 +35,9 @@ object Config:
           conf.getString("capitaliq.credentials.username"),
           conf.getString("capitaliq.credentials.password"),
         ),
-        mnemonicsPerRequest = conf.getInt("capitaliq.mnemonicsPerRequest")
+        mnemonicsPerRequest = if conf.getBoolean("capitaliq.demoAccount")
+          then conf.getInt("capitaliq.mnemonicsPerRequestInDemoAccount")
+          else conf.getInt("capitaliq.mnemonicsPerRequestInProdAccount")
       ),
       Quantemplate(
         auth = Quantemplate.Auth(

@@ -1,14 +1,24 @@
 package com.quantemplate.capitaliq.domain
 
-import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
-import io.circe.syntax.*
-import cats.syntax.traverse.{*, given}
-import cats.instances.vector.{*, given}
+import io.circe.{ Encoder, Decoder, Json }
+import io.circe.syntax.given
+import cats.syntax.traverse.given
+import cats.syntax.applicative.given
 
 object CapitalIQ:
   opaque type Identifier = String
   object Identifier:
+    val prefix = "IQ"
+
     def apply(s: String): Identifier = s
+
+    // this might use some improved validation
+    def isValid(s: String) = s.startsWith(prefix)
+
+    given Decoder[Identifier] = Decoder.decodeString
+      .ensure(isValid, "Not a valid CapitalIQ identifier")
+      .map(Identifier(_))
+
   extension (i: Identifier)
     def unwrap: String = i
 
@@ -137,15 +147,15 @@ object CapitalIQ:
 
     case class MnemonicResponse(error: String, rows: Option[Rows])
     object MnemonicResponse:
-      given Decoder[RawResponse.MnemonicResponse] = Decoder.instance[RawResponse.MnemonicResponse] { cursor =>
+      given Decoder[RawResponse.MnemonicResponse] = Decoder { c =>
         for 
-          error <- cursor.get[String]("ErrMsg")
-          jsonRows <- cursor.get[Option[Vector[Json]]]("Rows")
+          error <- c.get[String]("ErrMsg")
+          jsonRows <- c.get[Option[Vector[Json]]]("Rows")
           rows <- jsonRows.traverse(_.traverse(_.hcursor.get[Vector[String]]("Row")))
         yield MnemonicResponse(error, rows)
       }
 
-    given Decoder[RawResponse] = Decoder.instance[RawResponse](
+    given Decoder[RawResponse] = Decoder(
       _.get[Vector[RawResponse.MnemonicResponse]]("GDSSDKResponse").map(RawResponse(_))
     )
 

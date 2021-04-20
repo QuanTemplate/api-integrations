@@ -1,0 +1,16 @@
+command: generateRevenueReport
+params: 
+  orgId: c-my-small-insuranc-ltdzfd       # Quantemplate organisationId
+  datasetId: d-e4tf3yyxerabcvicidv5oyey   # Quantemplate datasetId
+  currency: USD                           # Currency supported by the CapitalIQ
+  from: 1988-12-31                        # Starting date in yyy-mm-dd format for the CapitalIQ query
+  to: 2018-12-31                          # Ending date in yyy-mm-dd format for the CapitalIQ query
+  identifiers:                            # CapitalIQ identifiers, that could be downloaded from:
+    # dataset: d-pjuq6lofrnbszq5zntfy4rvv #  - remote Quantemplate `dataset` (currently it only takes data from the first column)                                                  
+    # local: ./capitaliq-identifiers.txt  #  - `local` .txt file,  (relative file path will be resolved against the config file)
+    inline:                               #  - defined `inline` in the config file
+      # - IQ121238                        # Multiple sources of identifiers will be merged together
+      # - IQ598807
+      # - IQ723344
+      # - IQ956057
+      # - InvalidID
