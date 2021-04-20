@@ -15,15 +15,15 @@ import com.quantemplate.capitaliq.qt.*
 
 
 class RevenueReportCmd:
-  given Config = Config.load()
-  given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
-  given ExecutionContext = system.executionContext
+  private given Config = Config.load()
+  private given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
+  private given ExecutionContext = system.executionContext
 
-  lazy val logger = LoggerFactory.getLogger(getClass)
+  private lazy val logger = LoggerFactory.getLogger(getClass)
 
-  val httpService = HttpService()
-  val qtService = QTService(httpService)
-  val revenueReport = RevenueReport(CapitalIQService(httpService), qtService)
+  private val httpService = HttpService()
+  private val qtService = QTService(httpService)
+  private val revenueReport = RevenueReport(CapitalIQService(httpService), qtService)
 
   def fromCli(args: Array[String]) =
     RevenueReportArgsParser.parse(args)
