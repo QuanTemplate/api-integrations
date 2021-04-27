@@ -11,4 +11,5 @@ case class CmdConfig(
   to: LocalDate,
   currency: String,
   identifiers: Vector[Identifier]
+  // columns
 )

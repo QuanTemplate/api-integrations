@@ -1,0 +1,15 @@
+command: generateMultiDataPointReport
+params:
+  orgId: c-my-small-insuranc-ltdzfd       # Quantemplate organisationId
+  datasetId: d-e4tf3yyxerabcvicidv5oyey   # Quantemplate datasetId
+  identifiers:
+    dataset: d-pjuq6lofrnbszq5zntfy4rvv
+  columns:
+    - IQ_COMPANY_NAME_LONG
+    - IQ_COMPANY_ID
+    - IQ_ULT_PARENT
+    - IQ_ULT_PARENT_CIQID
+    - IQ_TOTAL_REV
+    - IQ_MARKETCAP
+    - IQ_SP_ISSUER_RATING
+    - IQ_TOTAL_EMPLOYEES
