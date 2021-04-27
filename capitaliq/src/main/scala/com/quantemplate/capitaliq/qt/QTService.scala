@@ -31,11 +31,11 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       )
 
     yield res match 
-      case HttpService.Response(200, _) => ()
-      case HttpService.Response(403, _) => 
-        throw DatasetUploadError("403: Did you share the dataset with whole org?")
+      case res @ HttpService.Response(200, _) => ()
+      case res @ HttpService.Response(403, _) => 
+        throw Forbidden("dataset upload", res)
       case other => 
-        throw DatasetUploadError(s"${other.statusCode}: ${other.body}")
+        throw UnexpectedError(other)
 
   def downloadDataset(orgId: String, datasetId: String) =
     val endpoint = datasetEndpoint(orgId, datasetId)
@@ -46,8 +46,13 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
         endpoint,
         Authorization(OAuth2BearerToken(tokenRes.accessToken)).some
       )
-    yield res
-
+      
+    yield res match
+      case HttpService.Response(200, Some(res)) => res 
+      case res @ HttpService.Response(403, _) => 
+        throw Forbidden("dataset download", res)
+      case other => 
+        throw UnexpectedError(other)
 
   def getToken(): Future[TokenResponse] = 
     httpService.post[TokenResponse](
@@ -59,8 +64,6 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       ).toEntity,
       None
     )
-    
-
 object QTService:
   case class TokenResponse(accessToken: String)
   object TokenResponse:

@@ -21,11 +21,11 @@ class HttpService(using system: ActorSystem[_]):
   def get(
     endpoint: String,
     auth: Option[Authorization] 
-  ): Future[String] =
+  ): Future[Response] =
     for
       res <- GET(endpoint, auth)
       body <- getResponseBody(res)
-    yield body.utf8String
+    yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
   def post[B: Decoder](
     endpoint: String, 
@@ -35,7 +35,7 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- POST(endpoint, req, auth)
       body <- getResponseBody(res)
-      result <- Unmarshal(body).to[B]
+      result <- Unmarshal(body.get).to[B]
     yield result
 
   def post[A: Encoder, B: Decoder](
@@ -47,7 +47,7 @@ class HttpService(using system: ActorSystem[_]):
       entity <- Marshal(req).to[RequestEntity]
       res <- POST(endpoint, entity, auth)
       body <- getResponseBody(res)
-      result <- Unmarshal(body).to[B]
+      result <- Unmarshal(body.get).to[B]
     yield result
 
   def post(
@@ -58,10 +58,10 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- POST(endpoint, HttpEntity(bytes), auth)
       body <- getResponseBody(res)
-    yield HttpService.Response(res.status.intValue, body.utf8String)
+    yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
   private def getResponseBody(res: HttpResponse) = 
-    res.entity.dataBytes.runFold(ByteString.empty)(_ ++ _)
+    res.entity.dataBytes.runFold(ByteString.empty)(_ ++ _).map(Option(_)) // could return null
 
   private def POST(endpoint: String, entity: RequestEntity, auth: Option[Authorization]) = 
     Http().singleRequest(
@@ -83,4 +83,4 @@ class HttpService(using system: ActorSystem[_]):
     )
 
 object HttpService:
-  case class Response(statusCode: Int, body: String)
+  case class Response(statusCode: Int, body: Option[String])

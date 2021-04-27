@@ -59,32 +59,66 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
       .map(Identifiers(_: _*))
       
 
-  private def loadIdentifiersFromDataset(datasetId: String)(orgId: String) =
-    qtService.downloadDataset(orgId, datasetId)
-      .map(Identifiers.loadFromCsvString)
+  private def loadIdentifiersFromDataset(orgId: String)(dataset: DatasetSource) =
+    qtService.downloadDataset(orgId, dataset.id)
+      .map(loadIdentifiersFromCsvString(dataset.columnName))
       .map { ids => 
         logger.info("Loaded CapitalIQ identifiers from remote dataset")
         ids
       }
       .recover { 
         case e: Throwable => 
-          logger.warn("Could not load the CapitalIQ identifiers from the remote dataset. Defaulting to local ones.", e)
+          logger.warn(s"Could not load the CapitalIQ identifiers from the remote dataset. Defaulting to local ones.\n$e")
           Vector.empty[CapitalIQ.Identifier]
       }
 
+  private def loadIdentifiersFromCsvString(columnName: Option[String])(str: String) =
+    // assuming `,` is the separator
+    val table = str.split('\n').toVector.map(_.split(',').toVector)
+
+    println(("str", str))
+
+    val columnIndex = table.lift(0)
+      .flatMap(
+        _.indexOf(columnName) match  
+          case -1 => None 
+          case n => Some(n)
+      )
+      .getOrElse(0)
+
+    val ids = table.map(row => row(columnIndex))
+
+    // println(("ids", ids))
+
+    Identifiers(ids: _*)
+
 object IdentifierLoader:
   case class IdentifiersConf(
-    local: Option[String],
-    dataset: Option[String],
-    inline: Option[Vector[CapitalIQ.Identifier]]
+    local: Option[LocalSource],
+    dataset: Option[DatasetSource],
+    inline: Option[InlineSource]
   )
-
   object IdentifiersConf:
     given Decoder[IdentifiersConf] = Decoder { c => 
       (
-        c.get[Option[String]]("local"),
-        c.get[Option[String]]("dataset"),
-        c.get[Option[Vector[CapitalIQ.Identifier]]]("inline")
+        c.get[Option[LocalSource]]("local"),
+        c.get[Option[DatasetSource]]("dataset"),
+        c.get[Option[InlineSource]]("inline")
       ).mapN(IdentifiersConf.apply)
     }
+
+  type LocalSource = String
+  type InlineSource = Vector[CapitalIQ.Identifier]
+
+  case class DatasetSource(id: String, columnName: Option[String] = None)
+  object DatasetSource:
+    given Decoder[DatasetSource] = 
+      Decoder[String].map(DatasetSource(_)) or 
+      Decoder { c => 
+        (
+          c.get[String]("datasetId"), 
+          c.get[Option[String]]("columnName")
+        ).mapN(DatasetSource.apply)
+      }
+    
   

@@ -10,13 +10,3 @@ object Identifiers:
       .filter(Identifier.isValid)
       .map(Identifier(_))
       .toVector
-
-  // (!) assuming the dataset uses ',' as a separator
-  //  and the identifiers are in the first column
-  def loadFromCsvString(str: String) =
-    Identifiers(
-      str
-        .split('\n')
-        .toVector
-        .map(_.split(',').headOption.getOrElse("")): _*
-    )
