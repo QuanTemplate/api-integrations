@@ -40,7 +40,7 @@ class RevenueReportCmd:
       .map(run)
 
   def run(config: CmdConfig) =
-    val ids = config.identifiers.distinct
+    val ids = config.identifiers
 
     if ids.isEmpty then 
       logger.error("No valid CapitalIQ identifiers were provided. Aborting")
@@ -59,6 +59,7 @@ class RevenueReportCmd:
       ).onComplete { 
         case Failure(e) => 
           logger.error("Failed to generate the revenue report: {}", e.toString)
+          e.printStackTrace()
           Runtime.getRuntime.halt(1)
 
         case Success(_) =>

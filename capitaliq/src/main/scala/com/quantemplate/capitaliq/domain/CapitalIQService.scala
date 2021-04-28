@@ -15,17 +15,23 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
 
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  def sendConcurrentRequests(toReq: Vector[Identifier] => Request)(ids: Vector[Identifier]) = 
+  def sendConcurrentRequests(
+    toReq: Vector[Identifier] => Request, 
+    errorStrategy: ErrorStrategy = ErrorStrategy.DiscardOnlyInvalid
+  )(ids: Vector[Identifier]) = 
     val requests = ids
       .grouped(conf.capitaliq.mnemonicsPerRequest)
       .toVector
-      .map(toReq.andThen(sendRequest))
+      .map(toReq.andThen(sendRequest(_, errorStrategy)))
 
     Future
       .sequence(requests)
       .map(_.flatten)
 
-  def sendRequest(req: Request): Future[Vector[Response]] =
+  def sendRequest(
+    req: Request, 
+    errorStrategy: ErrorStrategy = ErrorStrategy.DiscardOnlyInvalid
+  ): Future[Vector[Response]] =
     httpService.post[Request, RawResponse](
       conf.capitaliq.endpoint,
       req, 
@@ -35,9 +41,9 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
           conf.capitaliq.credentials.password
         )
       ).some
-    ).map(adaptRawResponse(req))
+    ).map(adaptRawResponse(req, errorStrategy))
 
-  private def adaptRawResponse(req: Request)(rawRes: RawResponse) =
+  private def adaptRawResponse(req: Request, errorStrategy: ErrorStrategy)(rawRes: RawResponse) =
     val res = rawRes.responses
 
     val generalErrors = collectGeneralErrors(res)
@@ -48,16 +54,40 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
       .zipWithIndex
       .toVector
       .map { case (req, i) => (req, res(i)) }
-
-    val perMnemonicErrors = collectPerMnemonicErrors(result)
-    if !perMnemonicErrors.isEmpty then throw MnemonicsError(perMnemonicErrors)
     
-    result.map { case (req, res) => 
+    val withAdapterErrors = adaptErrors(result, errorStrategy)
+    
+    withAdapterErrors.map { case (req, res) => 
       Response(
         req, 
         res.rows.get.filter(data => !(data.lift(0) == "Data Unavailable".some))
       ) 
     }
+
+  private def adaptErrors(result: Vector[(Mnemonic, MnemonicResponse)], errorStrategy: ErrorStrategy) =
+     errorStrategy match
+      case ErrorStrategy.DiscardAll => 
+        val perMnemonicErrors = collectPerMnemonicErrors(result)
+        if !perMnemonicErrors.isEmpty then throw MnemonicsError(perMnemonicErrors)
+
+        result
+
+      case ErrorStrategy.DiscardOnlyInvalid => 
+        result.map {
+          case (mnemonic, res @ MnemonicResponse(errMsg, rows)) if !errMsg.isEmpty =>      
+            val errorRow = Vector(s"[Error: $errMsg]")
+          
+            (
+              mnemonic, 
+              res.copy(
+                rows = rows
+                  .map(_.map(_ => errorRow))
+                  .orElse(Vector(errorRow).some)
+              )
+            )
+
+          case other => other
+        }
 
   private def collectGeneralErrors(result: Vector[MnemonicResponse]) =
     result.collect {
@@ -86,4 +116,7 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
     } 
 object CapitalIQService:
   case class Response(mnemonic: Mnemonic, rows: RawResponse.Rows)
+
+  enum ErrorStrategy:
+    case DiscardAll, DiscardOnlyInvalid
   

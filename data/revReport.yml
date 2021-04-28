@@ -3,16 +3,18 @@ params:
   orgId: c-qed-insurance-zpx       # Quantemplate organisationId
   datasetId: d-w6g5sjf-gvgp4wmexqhykblu   # Quantemplate datasetId
   currency: USD                           # Currency supported by the CapitalIQ
-  from: 1988-12-31                        # Starting date in yyy-mm-dd format for the CapitalIQ query
+  from: 2004-12-31                        # Starting date in yyy-mm-dd format for the CapitalIQ query
   to: 2018-12-31                          # Ending date in yyy-mm-dd format for the CapitalIQ query
-  identifiers:                            # CapitalIQ identifiers, that could be downloaded from:
-    dataset: 
-      datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
-      columnName: Company ID  #  - remote Quantemplate `dataset` (currently it only takes data from the first column)                                                  
+  identifiers:
+    distinct: false
+    # local: ./capitaliq-identifiers.txt                            # CapitalIQ identifiers, that could be downloaded from:
+    # dataset: 
+      # datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
+      # columnName: Company ID  #  - remote Quantemplate `dataset` (currently it only takes data from the first column)                                                  
     # local: ./capitaliq-identifiers.txt  #  - `local` .txt file,  (relative file path will be resolved against the config file)
-    # inline:                               #  - defined `inline` in the config file
-      # - IQ121238                        # Multiple sources of identifiers will be merged together
-      # - IQ598807
-      # - IQ723344
+    inline:                               #  - defined `inline` in the config file
+      - IQ121238                        # Multiple sources of identifiers will be merged together
+      - IQ121238
+      - IQ121238
       # - IQ956057
       # - InvalidID

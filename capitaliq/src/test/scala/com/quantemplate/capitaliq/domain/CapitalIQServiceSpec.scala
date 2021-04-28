@@ -14,7 +14,7 @@ import com.quantemplate.capitaliq.domain.CapitalIQService.*
 import com.quantemplate.ActorSystemSuite
 
 class CapitalIQServiceSpec extends ActorSystemSuite:
-  test("the response adaptation") {
+  test("it should properly adapt a valid response") {
     given sys: ActorSystem[Nothing] = actorSystem()
     given ExecutionContext = sys.executionContext
     given Config = Config.load()

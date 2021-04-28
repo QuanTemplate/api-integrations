@@ -23,7 +23,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
     logger.info("Loading the Capital IQ identifiers from the STDIN")
 
     IO.stdin(_.getLines.toVector) match
-      case Success(ids) => Identifiers(ids: _*)
+      case Success(ids) => Identifiers(ids: _*).distinct
       case Failure(err) =>
         logger.error("Could not load the Capital IQ identifiers from the STDIN. Aborting.") 
         throw err
@@ -43,7 +43,11 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
           .flatMap(_.local)
           .flatMap(loadIdentifiersFromLocalFile(configPath))
 
-        (inlineIds ++ localIds ++ remoteIds).reduceOption(_ ++ _)
+        val allIds = (inlineIds ++ localIds ++ remoteIds).reduceOption(_ ++ _)
+
+        if config.filter(_.distinct).isDefined 
+        then allIds.map(_.distinct)
+        else allIds
       }
 
   private def loadIdentifiersFromLocalFile(configPath: Path)(rawPath: String) =
@@ -96,14 +100,19 @@ object IdentifierLoader:
   case class IdentifiersConf(
     local: Option[LocalSource] = None,
     dataset: Option[DatasetSource] = None,
-    inline: Option[InlineSource] = None
+    inline: Option[InlineSource] = None,
+    distinct: Boolean = true,
   )
   object IdentifiersConf:
     given Decoder[IdentifiersConf] = Decoder { c => 
       (
         c.get[Option[LocalSource]]("local"),
         c.get[Option[DatasetSource]]("dataset"),
-        c.get[Option[InlineSource]]("inline")
+        c.get[Option[InlineSource]]("inline"),
+        c.get[Option[Boolean]]("distinct").map {
+          case Some(false) => false
+          case _ => true
+        }
       ).mapN(IdentifiersConf.apply)
     }
 

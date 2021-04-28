@@ -15,31 +15,33 @@ import com.quantemplate.ActorSystemSuite
 import IdentifierLoader.*
 
 class IdentifierLoaderSpec extends ActorSystemSuite:
-  test("should properly load the identifiers from QT dataset") {
+  test("given a column name it should properly load the identifiers from QT dataset") {
     given sys: ActorSystem[Nothing] = actorSystem()
     given ExecutionContext = sys.executionContext
 
     val mockQtService = mock(classOf[QTService])
 
+    val columnName = "Company ID"
+
     when(mockQtService.downloadDataset(any(), any())) thenReturn {
       Future.successful(
-        """Input Insured Name,Company Name,Company ID
-          |Prestige International Holding,Prestige International Holding,
-          |Prestige International Holding,Prestige International Holding,
-          |Ministry of Defence of Slovak Republic,Ministry of Defence of Slovak Republic,
-          |Ministry of Defence of Slovak Republic,Ministry of Defence of Slovak Republic,
-          |CAAC,China Civil Aviation Institute,IQ31234420
-          |CAAC,China Civil Aviation Institute1,IQ31234421
-          |CAAC,China Civil Aviation Institute2,IQ31234422
-          |CAAC,China Civil Aviation Institute3,IQ31234423
-        """.stripMargin
+        s"""Input Insured Name,Company Name,$columnName
+            |Prestige International Holding,Prestige International Holding,
+            |Prestige International Holding,Prestige International Holding,
+            |Ministry of Defence of Slovak Republic,Ministry of Defence of Slovak Republic,
+            |Ministry of Defence of Slovak Republic,Ministry of Defence of Slovak Republic,
+            |CAAC,China Civil Aviation Institute,IQ31234420
+            |CAAC,China Civil Aviation Institute1,IQ31234421
+            |CAAC,China Civil Aviation Institute2,IQ31234422
+            |CAAC,China Civil Aviation Institute3,IQ31234423
+          """.stripMargin
       )
     }
 
     val config = IdentifiersConf(
       dataset = DatasetSource(
         id = "d-abcd", 
-        columnName = "Company ID".some
+        columnName = columnName.some
       ).some 
     )
     
