@@ -8,6 +8,7 @@ import scala.concurrent.ExecutionContext
 import io.circe.syntax.given
 import cats.syntax.apply.given
 import cats.syntax.traverse.given
+import cats.syntax.functorFilter.given
 
 import com.quantemplate.capitaliq.common.*
 import com.quantemplate.capitaliq.domain.*
@@ -76,21 +77,20 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
     // assuming `,` is the separator
     val table = str.split('\n').toVector.map(_.split(',').toVector)
 
-    println(("str", str))
+    val namedColumnIndex = 
+      for 
+        firstRow <- table.lift(0)
+        name <- columnName
+        index <- firstRow.indexOf(name) match 
+          case -1 => None
+          case n => Some(n) 
+      yield index
 
-    val columnIndex = table.lift(0)
-      .flatMap(
-        _.indexOf(columnName) match  
-          case -1 => None 
-          case n => Some(n)
-      )
-      .getOrElse(0)
+    val columnIndex = namedColumnIndex getOrElse 0
 
-    val ids = table.map(row => row(columnIndex))
-
-    // println(("ids", ids))
-
-    Identifiers(ids: _*)
+    Identifiers(
+      table.mapFilter(_.lift(columnIndex)): _*
+    )
 
 object IdentifierLoader:
   case class IdentifiersConf(
