@@ -94,9 +94,9 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
 
 object IdentifierLoader:
   case class IdentifiersConf(
-    local: Option[LocalSource],
-    dataset: Option[DatasetSource],
-    inline: Option[InlineSource]
+    local: Option[LocalSource] = None,
+    dataset: Option[DatasetSource] = None,
+    inline: Option[InlineSource] = None
   )
   object IdentifiersConf:
     given Decoder[IdentifiersConf] = Decoder { c => 
