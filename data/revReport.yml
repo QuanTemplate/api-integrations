@@ -8,13 +8,13 @@ params:
   identifiers:
     distinct: false
     # local: ./capitaliq-identifiers.txt                            # CapitalIQ identifiers, that could be downloaded from:
-    # dataset: 
-      # datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
-      # columnName: Company ID  #  - remote Quantemplate `dataset` (currently it only takes data from the first column)                                                  
+    dataset: 
+      datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
+      columnName: Company ID  #  - remote Quantemplate `dataset` (currently it only takes data from the first column)                                                  
     # local: ./capitaliq-identifiers.txt  #  - `local` .txt file,  (relative file path will be resolved against the config file)
-    inline:                               #  - defined `inline` in the config file
-      - IQ121238                        # Multiple sources of identifiers will be merged together
-      - IQ121238
-      - IQ121238
+    # inline:                               #  - defined `inline` in the config file
+    #   - IQ121238                        # Multiple sources of identifiers will be merged together
+    #   - IQ121238
+    #   - IQ121238
       # - IQ956057
       # - InvalidID

@@ -84,7 +84,7 @@ object CapitalIQ:
           currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
 
-      given Encoder[Fn] = Encoder.instance[Fn] {
+      given Encoder[Fn] = Encoder {
           case fn: Fn.GDSP => 
             Json.obj(
               "currencyId" -> Json.fromString(fn.currencyId),
@@ -116,8 +116,7 @@ object CapitalIQ:
             "IQ_TOTAL_REV",
             m.properties 
           )
-      }
-
+        }
     end IQ_TOTAL_REV
 
     case class IQ_COMPANY_NAME_LONG(identifier: Identifier) extends Mnemonic
@@ -127,12 +126,188 @@ object CapitalIQ:
           ( "GDSP", m.identifier.unwrap, "IQ_COMPANY_NAME_LONG" )
         }
 
-    end IQ_COMPANY_NAME_LONG
+    case class IQ_ULT_PARENT(identifier: Identifier) extends Mnemonic
+    object IQ_ULT_PARENT:
+      given Encoder[IQ_ULT_PARENT ] = 
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
+          ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT" )
+        }
+
+    case class IQ_COMPANY_ID(properties: IQ_COMPANY_ID.Fn, identifier: Identifier) extends Mnemonic
+    object IQ_COMPANY_ID:
+      enum Fn:
+        case GDSP(startDate: Option[String] = None)
+
+      given Encoder[Fn] = Encoder {
+        case fn: Fn.GDSP => 
+          Json.obj(
+            "startDate" -> fn.startDate.map(Json.fromString).getOrElse(Json.Null)
+          )
+      }
+
+      given Encoder[IQ_COMPANY_ID] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m => 
+          ("GDSP", m.identifier.unwrap, "IQ_COMPANY_ID", m.properties )
+        }
+    end IQ_COMPANY_ID
+
+    case class IQ_MARKETCAP(properties: IQ_MARKETCAP.Fn, identifier: Identifier) extends Mnemonic
+    object IQ_MARKETCAP:
+      // also supports GDST and GDSHE
+      enum Fn:
+        case GDSP(
+          currencyId: String,
+          asOfDate: Option[String] = None,
+          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+        )
+
+      given Encoder[Fn] = Encoder {
+        case fn: Fn.GDSP => 
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+          )
+      }
+
+      given Encoder[IQ_MARKETCAP] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          (
+            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.identifier.unwrap,
+            "IQ_MARKETCAP",
+            m.properties 
+          )
+        }
+    end IQ_MARKETCAP
+
+    // net income
+    case class IQ_NI(properties: IQ_NI.Fn, identifier: Identifier) extends Mnemonic
+    object IQ_NI:
+      // also supports GDSHE
+      enum Fn:
+        case GDSP(
+          currencyId: String,
+          periodType: MarkedPeriod,
+          asOfDate: Option[String] = None,
+          restatementTypeId: Option[String] = None,
+          filingMode: Option[FilingMode] = None,
+          consolidatedFlag: Option[ConsolidatedFlag] = None,
+          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+        )
+      
+      given Encoder[Fn] = Encoder {
+        case fn: Fn.GDSP => 
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+          )
+      }
+
+      given Encoder[IQ_NI] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          (
+            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.identifier.unwrap,
+            "IQ_NI",
+            m.properties 
+          )
+        }
+    end IQ_NI
+
+    case class IQ_TOTAL_EMPLOYEES(properties: IQ_TOTAL_EMPLOYEES.Fn, identifier: Identifier) extends Mnemonic
+    object IQ_TOTAL_EMPLOYEES:
+      // also supports GDSHE
+      enum Fn:
+        case GDSP(
+          currencyId: String,
+          periodType: MarkedPeriod,
+          asOfDate: Option[String] = None,
+          restatementTypeId: Option[String] = None,
+          filingMode: Option[FilingMode] = None,
+          consolidatedFlag: Option[ConsolidatedFlag] = None,
+          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+        )
+      
+      given Encoder[Fn] = Encoder {
+        case fn: Fn.GDSP => 
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+          )
+      }
+
+      given Encoder[IQ_TOTAL_EMPLOYEES] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          (
+            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.identifier.unwrap,
+            "IQ_TOTAL_EMPLOYEES",
+            m.properties 
+          )
+        }
+    end IQ_TOTAL_EMPLOYEES
+
+    // EBITDA - Earnings Before Interest, Taxes, Depreciation, and Amortization
+    case class IQ_EBITDA(properties: IQ_EBITDA.Fn, identifier: Identifier) extends Mnemonic
+    object IQ_EBITDA:
+      // also supports GDSHE
+      enum Fn:
+        case GDSP(
+          currencyId: String,
+          periodType: MarkedPeriod,
+          asOfDate: Option[String] = None,
+          restatementTypeId: Option[String] = None,
+          filingMode: Option[FilingMode] = None,
+          consolidatedFlag: Option[ConsolidatedFlag] = None,
+          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+        )
+      
+      given Encoder[Fn] = Encoder {
+        case fn: Fn.GDSP => 
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
+          )
+      }
+
+      given Encoder[IQ_EBITDA] = 
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          (
+            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.identifier.unwrap,
+            "IQ_EBITDA",
+            m.properties 
+          )
+        }
+    end IQ_EBITDA
+
 
     // there is a StackOverflowError after using just a single `(_.asJson)`
     given Encoder[Mnemonic] = Encoder.instance[Mnemonic] {
-      case m: Mnemonic.IQ_TOTAL_REV => m.asJson
-      case m: Mnemonic.IQ_COMPANY_NAME_LONG => m.asJson
+      case m: IQ_TOTAL_REV => m.asJson
+      case m: IQ_COMPANY_NAME_LONG => m.asJson
+      case m: IQ_COMPANY_ID => m.asJson
+      case m: IQ_ULT_PARENT => m.asJson
+      case m: IQ_MARKETCAP => m.asJson
+      case m: IQ_NI => m.asJson
+      case m: IQ_TOTAL_EMPLOYEES => m.asJson
+      case m: IQ_EBITDA => m.asJson
     }
 
   end Mnemonic

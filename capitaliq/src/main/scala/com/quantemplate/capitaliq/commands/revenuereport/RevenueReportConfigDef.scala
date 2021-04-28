@@ -2,7 +2,6 @@ package com.quantemplate.capitaliq.commands.revenuereport
 
 import java.time.LocalDate
 import io.circe.Decoder
-import io.circe.yaml.{parser as ymlParser}
 import io.circe.syntax.given
 import cats.syntax.apply.given
 

@@ -12,6 +12,7 @@ import com.quantemplate.capitaliq.common.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.Identifier
 import com.quantemplate.capitaliq.domain.Identifiers
 import com.quantemplate.capitaliq.commands.revenuereport.*
+import com.quantemplate.capitaliq.commands.mutlidatapointreport.*
 
 object ConfigDefInterpreterCmd:
   lazy val logger = LoggerFactory.getLogger(getClass)
@@ -22,7 +23,10 @@ object ConfigDefInterpreterCmd:
     loadConfig(configPath).bimap(
       err => logger.error("Could not parse the config file", err),
       {
-        case config: RevenueReportConfigDef => RevenueReportCmd().fromConfigFile(config, configPath)
+        case config: RevenueReportConfigDef => 
+          RevenueReportCmd().fromConfigFile(config, configPath)
+        case config: MultiPointReportConfigDef => 
+          MultiDataPointReportCmd().fromConfigFile(config, configPath)
       }
     )
   }
@@ -35,7 +39,8 @@ private def loadConfig(path: Path) =
 
 given Decoder[ConfigDef] = Decoder.instance[ConfigDef] { c => 
   c.get[String]("command").flatMap { 
-    case configDefInterpreterCmdName => c.get[RevenueReportConfigDef]("params")
+    case `revenueReportCmdName`    => c.get[RevenueReportConfigDef]("params")
+    case `multiPointReportCmdName` => c.get[MultiPointReportConfigDef]("params")
   }
 }
 

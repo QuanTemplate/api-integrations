@@ -1,4 +1,4 @@
-package com.quantemplate.capitaliq.commands.revenuereport
+package com.quantemplate.capitaliq.commands.mutlidatapointreport
 
 import java.nio.file.Path
 import akka.actor.typed.ActorSystem
@@ -11,11 +11,13 @@ import cats.syntax.traverse.given
 
 import com.quantemplate.capitaliq.common.{Config, HttpService}
 import com.quantemplate.capitaliq.domain.CapitalIQService
+import com.quantemplate.capitaliq.domain.CapitalIQ.Mnemonic.*
 import com.quantemplate.capitaliq.qt.QTService
 
 import com.quantemplate.capitaliq.commands.IdentifierLoader
 
-class RevenueReportCmd:
+
+class MultiDataPointReportCmd:
   private given Config = Config.load()
   private given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "capitaliq")
   private given ExecutionContext = system.executionContext
@@ -25,14 +27,8 @@ class RevenueReportCmd:
   private val httpService = HttpService()
   private val qtService = QTService(httpService)
   private val identifiersLoader = IdentifierLoader(qtService)
-  private val revenueReport = RevenueReport(CapitalIQService(httpService), qtService)
 
-  def fromCli(args: Array[String]) =
-    RevenueReportArgsParser.parse(args)
-      .map(_.toCmdConfig(identifiersLoader.loadIdentifiersFromStdin()))
-      .map(run)
-
-  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path) = 
+  def fromConfigFile(config: MultiPointReportConfigDef, configPath: Path) =
     identifiersLoader
       .loadIdentifiersFromConfig(config.identifiers, configPath, config.orgId)
       .map(_.getOrElse(identifiersLoader.loadIdentifiersFromStdin()))
@@ -40,28 +36,16 @@ class RevenueReportCmd:
       .map(run)
 
   private def run(config: CmdConfig) =
-    val ids = config.identifiers
+    config.columns.map {
+      case ColumnDef("IQ_TOTAL_REV", b) => 
+        // IQ_TOTAL_REV.Fn.GDSP(
 
-    if ids.isEmpty then 
-      logger.error("No valid CapitalIQ identifiers were provided. Aborting")
-      Runtime.getRuntime.halt(1)
-
-    revenueReport
-      .generateSpreadSheet(
-        ids = ids,
-        range = (
-          config.from,
-          config.to
-        ),
-        currency = config.currency,
-        orgId = config.orgId,
-        datasetId = config.datasetId
-      ).onComplete { 
-        case Failure(e) => 
-          logger.error("Failed to generate the revenue report: {}", e.toString)
-          e.printStackTrace()
-          Runtime.getRuntime.halt(1)
-
-        case Success(_) =>
-          Runtime.getRuntime.halt(0)
-      }
+        // )
+      case ColumnDef("IQ_COMPANY_NAME_LONG", b) => ()
+      case ColumnDef("IQ_ULT_PARENT", b) => ()
+      case ColumnDef("IQ_COMPANY_ID", b) => ()
+      case ColumnDef("IQ_MARKETCAP", b) => ()
+      case ColumnDef("IQ_NI", b) => ()
+      case ColumnDef("IQ_TOTAL_EMPLOYEES", b) => ()
+      case ColumnDef("IQ_EBITDA", b) => ()
+    }

@@ -3,6 +3,7 @@ params:
   orgId: c-my-small-insuranc-ltdzfd       # Quantemplate organisationId
   datasetId: d-e4tf3yyxerabcvicidv5oyey   # Quantemplate datasetId
   identifiers:
+    distinct: true
     dataset: d-pjuq6lofrnbszq5zntfy4rvv
   columns:
     - IQ_COMPANY_NAME_LONG
