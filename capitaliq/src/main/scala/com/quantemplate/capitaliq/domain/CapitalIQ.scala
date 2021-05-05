@@ -55,17 +55,21 @@ object CapitalIQ:
   import Properties.*
 
 
-  sealed trait Mnemonic
+  sealed trait Mnemonic:
+    def name: String
   object Mnemonic:
-    // todo: reduce boilerplate of shared props with generic tuples: 
-    // https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html
+    // todo: reducing boilerplate
+    //  - describe shared props with generic tuples: https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html
+    //  - get rid of `name` method
+    //  - update to native Scala 3 circe and once stable use circe-generic to derive encoders
 
-    case class IQ_TOTAL_REV(properties: IQ_TOTAL_REV.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_TOTAL_REV(properties: IQ_TOTAL_REV.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_TOTAL_REV:
       enum Fn:
         case GDSP(
           currencyId: String,
-          periodType: MarkedPeriod,
+          periodType: Option[MarkedPeriod] = None,
           asOfDate: Option[String] = None,
           restatementTypeId: Option[String] = None,
           filingMode: Option[FilingMode] = None,
@@ -75,7 +79,7 @@ object CapitalIQ:
 
         case GDSHE(
           currencyId: String,
-          periodType: MarkedPeriod,
+          periodType: Option[MarkedPeriod] = None,
           metaDataTag: Option[MetaDataTag] = None,
           asOfDate: Option[String] = None,
           restatementTypeId: Option[String] = None,
@@ -88,7 +92,7 @@ object CapitalIQ:
           case fn: Fn.GDSP => 
             Json.obj(
               "currencyId" -> Json.fromString(fn.currencyId),
-              "periodType" -> Json.fromString(fn.periodType.unwrap),
+              "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
               "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
               "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
@@ -98,7 +102,7 @@ object CapitalIQ:
           case fn: Fn.GDSHE =>
             Json.obj(
               "currencyId" -> Json.fromString(fn.currencyId),
-              "periodType" -> Json.fromString(fn.periodType.unwrap),
+              "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
               "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
               "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
@@ -119,21 +123,24 @@ object CapitalIQ:
         }
     end IQ_TOTAL_REV
 
-    case class IQ_COMPANY_NAME_LONG(identifier: Identifier) extends Mnemonic
+    case class IQ_COMPANY_NAME_LONG(identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_COMPANY_NAME_LONG:
       given Encoder[IQ_COMPANY_NAME_LONG] = 
         Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
           ( "GDSP", m.identifier.unwrap, "IQ_COMPANY_NAME_LONG" )
         }
 
-    case class IQ_ULT_PARENT(identifier: Identifier) extends Mnemonic
+    case class IQ_ULT_PARENT(identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_ULT_PARENT:
       given Encoder[IQ_ULT_PARENT ] = 
         Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
           ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT" )
         }
 
-    case class IQ_COMPANY_ID(properties: IQ_COMPANY_ID.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_COMPANY_ID(properties: IQ_COMPANY_ID.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_COMPANY_ID:
       enum Fn:
         case GDSP(startDate: Option[String] = None)
@@ -151,7 +158,8 @@ object CapitalIQ:
         }
     end IQ_COMPANY_ID
 
-    case class IQ_MARKETCAP(properties: IQ_MARKETCAP.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_MARKETCAP(properties: IQ_MARKETCAP.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_MARKETCAP:
       // also supports GDST and GDSHE
       enum Fn:
@@ -182,13 +190,14 @@ object CapitalIQ:
     end IQ_MARKETCAP
 
     // net income
-    case class IQ_NI(properties: IQ_NI.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_NI(properties: IQ_NI.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_NI:
       // also supports GDSHE
       enum Fn:
         case GDSP(
           currencyId: String,
-          periodType: MarkedPeriod,
+          periodType: Option[MarkedPeriod] = None,
           asOfDate: Option[String] = None,
           restatementTypeId: Option[String] = None,
           filingMode: Option[FilingMode] = None,
@@ -200,7 +209,7 @@ object CapitalIQ:
         case fn: Fn.GDSP => 
           Json.obj(
             "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
             "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
             "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
             "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
@@ -220,13 +229,14 @@ object CapitalIQ:
         }
     end IQ_NI
 
-    case class IQ_TOTAL_EMPLOYEES(properties: IQ_TOTAL_EMPLOYEES.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_TOTAL_EMPLOYEES(properties: IQ_TOTAL_EMPLOYEES.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_TOTAL_EMPLOYEES:
       // also supports GDSHE
       enum Fn:
         case GDSP(
           currencyId: String,
-          periodType: MarkedPeriod,
+          periodType: Option[MarkedPeriod] = None,
           asOfDate: Option[String] = None,
           restatementTypeId: Option[String] = None,
           filingMode: Option[FilingMode] = None,
@@ -238,7 +248,7 @@ object CapitalIQ:
         case fn: Fn.GDSP => 
           Json.obj(
             "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
             "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
             "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
             "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
@@ -259,13 +269,14 @@ object CapitalIQ:
     end IQ_TOTAL_EMPLOYEES
 
     // EBITDA - Earnings Before Interest, Taxes, Depreciation, and Amortization
-    case class IQ_EBITDA(properties: IQ_EBITDA.Fn, identifier: Identifier) extends Mnemonic
+    case class IQ_EBITDA(properties: IQ_EBITDA.Fn, identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
     object IQ_EBITDA:
       // also supports GDSHE
       enum Fn:
         case GDSP(
           currencyId: String,
-          periodType: MarkedPeriod,
+          periodType: Option[MarkedPeriod] = None,
           asOfDate: Option[String] = None,
           restatementTypeId: Option[String] = None,
           filingMode: Option[FilingMode] = None,
@@ -277,7 +288,7 @@ object CapitalIQ:
         case fn: Fn.GDSP => 
           Json.obj(
             "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> Json.fromString(fn.periodType.unwrap),
+            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
             "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
             "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
             "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),

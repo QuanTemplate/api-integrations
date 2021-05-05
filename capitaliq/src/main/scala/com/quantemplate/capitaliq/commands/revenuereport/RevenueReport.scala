@@ -6,18 +6,16 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.typed.ActorSystem
-import cats.syntax.option.*
+import cats.syntax.option.given
 
+import com.quantemplate.capitaliq.common.*
 import com.quantemplate.capitaliq.domain.CapitalIQ.*
 import com.quantemplate.capitaliq.domain.CapitalIQService
 import com.quantemplate.capitaliq.domain.CapitalIQ.Properties.*
-import com.quantemplate.capitaliq.common.{View, Xlsx}
 import com.quantemplate.capitaliq.qt.QTService
 
 class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(using ExecutionContext):
   given logger: Logger = LoggerFactory.getLogger(getClass)
-
-  type ReportRows = Vector[Vector[Option[String]]]
 
   def generateSpreadSheet(
     ids: Vector[Identifier], 
@@ -42,7 +40,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
       yield ()
    }
 
-  private def constructSpreadsheet(names: ReportRows, data: ReportRows): View =
+  private def constructSpreadsheet(names: View.ReportRows, data: View.ReportRows): View =
     val rows = names.zipWithIndex.map { case (row, i) => row ++ data(i) }
     Xlsx(Vector(View.SheetModel("Revenue", rows))) 
 
@@ -50,7 +48,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
     ids: Vector[Identifier], 
     range: (LocalDate, LocalDate),
     currency: String
-  ): Future[ReportRows] =
+  ): Future[View.ReportRows] =
     import range.{ _1 as start, _2 as end }
 
     val periodType = "IQ_FY" back (end.getYear - start.getYear)
@@ -81,7 +79,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
             identifier = id,
             properties = Mnemonic.IQ_TOTAL_REV.Fn.GDSHE(
               currencyId = currency,
-              periodType = periodType,
+              periodType = periodType.some,
               asOfDate = asOfDate,
               metaDataTag = "FiscalYear".some
             )
@@ -90,7 +88,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
       )
     )
 
-  private def getNameRows(ids: Vector[Identifier]): Future[ReportRows] =
+  private def getNameRows(ids: Vector[Identifier]): Future[View.ReportRows] =
     getReportNamesData(ids).map { responses =>
       val headerRows = Vector("Company name".some, "ID".some)
       val rows = responses.map { res =>
@@ -107,16 +105,3 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
     capitalIqService.sendConcurrentRequests(
       ids => Request(ids.map(Mnemonic.IQ_COMPANY_NAME_LONG(_)))
     )
-
-
-def measure[T](codeBlock: => Future[T])
-(using logger: Logger, ec: ExecutionContext): Future[T] =
-  val t0 = System.nanoTime()
-  codeBlock.map { result => 
-    val t1 = System.nanoTime()
-
-    val elapsed = TimeUnit.SECONDS.convert(t1 - t0, TimeUnit.NANOSECONDS)
-    logger.info("Finished in: " + elapsed + "s")
-
-    result
-  }

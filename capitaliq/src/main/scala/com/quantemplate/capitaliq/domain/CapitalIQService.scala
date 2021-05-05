@@ -3,7 +3,7 @@ package com.quantemplate.capitaliq.domain
 import scala.concurrent.{ExecutionContext, Future}
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.{ Authorization, BasicHttpCredentials }
-import cats.syntax.option.*
+import cats.syntax.option.given
 import org.slf4j.LoggerFactory
 
 import com.quantemplate.capitaliq.common.{Config, HttpService}
@@ -41,7 +41,8 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
           conf.capitaliq.credentials.password
         )
       ).some
-    ).map(adaptRawResponse(req, errorStrategy))
+    )
+      .map(adaptRawResponse(req, errorStrategy))
 
   private def adaptRawResponse(req: Request, errorStrategy: ErrorStrategy)(rawRes: RawResponse) =
     val res = rawRes.responses

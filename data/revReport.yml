@@ -6,7 +6,7 @@ params:
   from: 2004-12-31                        # Starting date in yyy-mm-dd format for the CapitalIQ query
   to: 2018-12-31                          # Ending date in yyy-mm-dd format for the CapitalIQ query
   identifiers:
-    distinct: false
+    distinct: true
     # local: ./capitaliq-identifiers.txt                            # CapitalIQ identifiers, that could be downloaded from:
     dataset: 
       datasetId: d-vvgqdpct2jh3ys3c4iuncyjh

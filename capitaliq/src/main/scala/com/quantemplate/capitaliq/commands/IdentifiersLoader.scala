@@ -46,7 +46,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
         val allIds = (inlineIds ++ localIds ++ remoteIds).reduceOption(_ ++ _)
 
         if config.filter(_.distinct).isDefined 
-        then allIds.map(_.distinct)
+        then allIds.map(_.distinct.take(5)) // todo: remove `take` after demo
         else allIds
       }
 
