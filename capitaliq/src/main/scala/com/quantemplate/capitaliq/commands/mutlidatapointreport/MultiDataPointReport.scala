@@ -67,6 +67,15 @@ class MultiDataPointReport(capitalIqService: CapitalIQService, qtService: QTServ
             identifier = id
           )
 
+      case ColumnDef("IQ_TEV_TOTAL_REV", _) => 
+        id => 
+          IQ_TEV_TOTAL_REV(
+            IQ_TEV_TOTAL_REV.Fn.GDSP(
+              asOfDate = asOfDate
+            ),
+            identifier = id
+          )
+
       case ColumnDef("IQ_COMPANY_NAME_LONG", _) => 
         IQ_COMPANY_NAME_LONG.apply
 
@@ -109,12 +118,31 @@ class MultiDataPointReport(capitalIqService: CapitalIQService, qtService: QTServ
             ),
             identifier = id
           )
+
+      case ColumnDef("IQ_EBIT", _) =>
+        id => 
+          IQ_EBIT(
+            IQ_EBIT.Fn.GDSP(
+              currencyId = currencyId,
+              asOfDate = asOfDate
+            ),
+            identifier = id
+          )
         
       case ColumnDef("IQ_EBITDA", _) =>
         id => 
           IQ_EBITDA(
             IQ_EBITDA.Fn.GDSP(
               currencyId = currencyId,
+              asOfDate = asOfDate
+            ),
+            identifier = id
+          )
+
+      case ColumnDef("IQ_TEV_EBITDA", _) =>
+        id => 
+          IQ_TEV_EBITDA(
+            IQ_TEV_EBITDA.Fn.GDSP(
               asOfDate = asOfDate
             ),
             identifier = id
