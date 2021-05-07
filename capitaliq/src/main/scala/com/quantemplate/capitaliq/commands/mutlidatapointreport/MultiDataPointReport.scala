@@ -2,7 +2,6 @@ package com.quantemplate.capitaliq.commands.mutlidatapointreport
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.format.DateTimeFormatter
-import java.time.LocalDate
 import org.slf4j.{LoggerFactory, Logger}
 import cats.syntax.option.given
 import cats.syntax.traverse.given

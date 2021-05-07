@@ -63,3 +63,72 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
       _ = assertEquals(result, expected)
     yield ()
   }
+
+  test("given a `limit` config option it should filter out redundant ids") {
+    given sys: ActorSystem[Nothing] = actorSystem()
+    given ExecutionContext = sys.executionContext
+
+    val mockQtService = mock(classOf[QTService])
+
+    val ids = Vector(
+      Identifier("IQ31234420"),
+      Identifier("IQ31234421"),
+      Identifier("IQ31234422"),
+      Identifier("IQ31234423")
+    )
+
+    val limit = 2
+
+    val config = IdentifiersConf(
+      inline = ids.some,
+      limit = limit.some
+    )
+
+    for
+      result <- IdentifierLoader(mockQtService)
+        .loadIdentifiersFromConfig(
+          config = config.some,
+          configPath = Paths.get("/"),
+          orgId = "c-qed-insur"
+        )
+
+      expected = ids.take(limit).some
+
+      _ = assertEquals(result, expected)
+    yield ()
+  }
+
+   test("given a `distinct` config option it should filter out duplicated ids") {
+    given sys: ActorSystem[Nothing] = actorSystem()
+    given ExecutionContext = sys.executionContext
+
+    val mockQtService = mock(classOf[QTService])
+
+    val ids = Vector(
+      Identifier("IQ31234420"),
+      Identifier("IQ31234420"),
+      Identifier("IQ31234420"),
+      Identifier("IQ31234423")
+    )
+
+    val config = IdentifiersConf(
+      inline = ids.some,
+      distinct = true
+    )
+
+    for
+      result <- IdentifierLoader(mockQtService)
+        .loadIdentifiersFromConfig(
+          config = config.some,
+          configPath = Paths.get("/"),
+          orgId = "c-qed-insur"
+        )
+
+      expected = Vector(
+        Identifier("IQ31234420"),
+        Identifier("IQ31234423")
+      ).some
+
+      _ = assertEquals(result, expected)
+    yield ()
+  }
