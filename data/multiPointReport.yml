@@ -1,3 +1,4 @@
+# checkout the ./revReport.yml to see description of common params
 command: generateMultiDataPointReport
 params:
   orgId: c-qed-insurance-zpx      
@@ -10,7 +11,7 @@ params:
     dataset: 
       datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
       columnName: Company ID 
-  columns:
+  columns: # Capital IQ mnemonics used for the columns construction                       
     - IQ_COMPANY_NAME_LONG
     - IQ_COMPANY_ID
     - IQ_ULT_PARENT
