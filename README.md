@@ -24,11 +24,11 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
 ### Use-cases
 
-- Generating a total revenue report from the CapitalIQ data and uploading it to the Quantemplate dataset
+- Generating a total revenue report from the Capital IQ data and uploading it to the Quantemplate dataset
 
     - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.0.jar apply ./data/revReport.yml
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar apply ./data/revReport.yml
         ```
 
         Check out the [config file](./data/revReport.yml)
@@ -36,9 +36,17 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with CLI args:
         ```sh
-        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.0.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
         ```
 
+- Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset
+
+     - with yaml config:
+        ```sh
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar apply ./data/multiPointReport.yml
+        ```
+
+        Check out the [config file](./data/multiPointReport.yml)
 
 
 ## Capital IQ request definition
@@ -59,8 +67,8 @@ An example set of identifiers could be found in the `./data/capitaliq-identifier
 - **GDST** - Retrieves historical values for a mnemonic over a range of dates with a specific frequency
 
 ### Available Mnemonics
-- [**IQ_TOTAL_REV**](https://support.standardandpoors.com/gds/index.php?option=com_content&view=article&id=545671:total-revenues&catid=12468&Itemid=301)
-- [**IQ_COMPANY_NAME_LONG**](https://support.standardandpoors.com/gds/index.php?option=com_content&view=article&id=554261:iq-company-name-long&catid=12646&Itemid=301)
+
+Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/domain/CapitalIQ.scala)
 
 ## Development environment setup
 

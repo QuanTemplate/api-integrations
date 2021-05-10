@@ -11,7 +11,9 @@ trait View:
 object View:
   val blankCell = "-"
 
-  case class SheetModel(name: String, rows: Vector[Vector[Option[String]]])
+  type ReportRows = Vector[Vector[Option[String]]]
+
+  case class SheetModel(name: String, rows: ReportRows)
 
 class Xlsx(sheets: Vector[View.SheetModel]) extends View:
   import View.*

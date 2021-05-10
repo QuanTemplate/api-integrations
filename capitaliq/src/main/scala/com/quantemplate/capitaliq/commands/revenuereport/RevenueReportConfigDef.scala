@@ -2,12 +2,12 @@ package com.quantemplate.capitaliq.commands.revenuereport
 
 import java.time.LocalDate
 import io.circe.Decoder
-import io.circe.yaml.{parser as ymlParser}
 import io.circe.syntax.given
 import cats.syntax.apply.given
 
 import com.quantemplate.capitaliq.domain.CapitalIQ.Identifier
 import com.quantemplate.capitaliq.commands.ConfigDef
+import com.quantemplate.capitaliq.commands.IdentifierLoader.*
 
 case class RevenueReportConfigDef(
   orgId: String,
@@ -15,7 +15,7 @@ case class RevenueReportConfigDef(
   currency: String,
   from: LocalDate,
   to: LocalDate,
-  identifiers: Option[RevenueReportConfigDef.Identifiers]
+  identifiers: Option[IdentifiersConf]
 ) extends ConfigDef:
   def toCmdConfig(loadedIds: => Vector[Identifier]) = CmdConfig(
     orgId = orgId,
@@ -34,22 +34,6 @@ object RevenueReportConfigDef:
       c.get[String]("currency"),
       c.get[LocalDate]("from"),
       c.get[LocalDate]("to"),
-      c.get[Option[RevenueReportConfigDef.Identifiers]]("identifiers")
+      c.get[Option[IdentifiersConf]]("identifiers")
     ).mapN(RevenueReportConfigDef.apply)
   }
-
-  case class Identifiers(
-    local: Option[String],
-    dataset: Option[String],
-    inline: Option[Vector[Identifier]]
-  )
-
-  object Identifiers:
-    given Decoder[Identifiers] = Decoder { c => 
-      (
-        c.get[Option[String]]("local"),
-        c.get[Option[String]]("dataset"),
-        c.get[Option[Vector[Identifier]]]("inline")
-      ).mapN(Identifiers.apply)
-    }
-  

@@ -1,0 +1,22 @@
+# checkout the ./revReport.yml to see description of common params
+command: generateMultiDataPointReport
+params:
+  orgId: c-qed-insurance-zpx      
+  datasetId: d-42b4qzizirc5mq5eyxx4tp5t
+  currency: USD
+  date: 2021-05-05
+  identifiers:
+    distinct: true
+    limit: 30
+    dataset: 
+      datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
+      columnName: Company ID 
+  columns: # Capital IQ mnemonics used for the columns construction                       
+    - IQ_COMPANY_NAME_LONG
+    - IQ_COMPANY_ID
+    - IQ_ULT_PARENT
+    - IQ_TOTAL_REV
+    - IQ_MARKETCAP
+    - IQ_NI
+    - IQ_EBITDA
+    - IQ_TOTAL_EMPLOYEES
