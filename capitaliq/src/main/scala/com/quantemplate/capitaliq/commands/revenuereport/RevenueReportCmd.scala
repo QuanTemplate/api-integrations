@@ -58,8 +58,7 @@ class RevenueReportCmd:
         datasetId = config.datasetId
       ).onComplete { 
         case Failure(e) => 
-          logger.error("Failed to generate the revenue report: {}", e.toString)
-          e.printStackTrace()
+          logger.error("Failed to generate the revenue report", e)
           Runtime.getRuntime.halt(1)
 
         case Success(_) =>

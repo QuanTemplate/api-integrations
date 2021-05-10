@@ -63,7 +63,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
     IO.readLines(idsPath)
       .recover {
         case err: Throwable =>
-          logger.warn("Could not load the Capital IQ identifiers from the local file {}", err)
+          logger.warn("Could not load the Capital IQ identifiers from the local file", err)
           Vector.empty[String]
       }
       .toOption
@@ -79,13 +79,13 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
       }
       .recover { 
         case e: Throwable => 
-          logger.warn(s"Could not load the CapitalIQ identifiers from the remote dataset. Defaulting to local ones.\n$e")
+          logger.warn("Could not load the CapitalIQ identifiers from the remote dataset. Defaulting to local ones", e)
           Vector.empty[CapitalIQ.Identifier]
       }
 
   private def loadIdentifiersFromCsvString(columnName: Option[String])(str: String) =
-    // assuming `,` is the separator
-    val table = str.split('\n').toVector.map(_.split(',').toVector)
+    val separator = ','
+    val table = str.split('\n').toVector.map(_.split(separator).toVector)
 
     val namedColumnIndex = 
       for 

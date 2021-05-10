@@ -16,9 +16,6 @@ import IdentifierLoader.*
 
 class IdentifierLoaderSpec extends ActorSystemSuite:
   test("given a column name it should properly load the identifiers from QT dataset") {
-    given sys: ActorSystem[Nothing] = actorSystem()
-    given ExecutionContext = sys.executionContext
-
     val mockQtService = mock(classOf[QTService])
 
     val columnName = "Company ID"
@@ -65,9 +62,6 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
   }
 
   test("given a `limit` config option it should filter out redundant ids") {
-    given sys: ActorSystem[Nothing] = actorSystem()
-    given ExecutionContext = sys.executionContext
-
     val mockQtService = mock(classOf[QTService])
 
     val ids = Vector(
@@ -99,9 +93,6 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
   }
 
    test("given a `distinct` config option it should filter out duplicated ids") {
-    given sys: ActorSystem[Nothing] = actorSystem()
-    given ExecutionContext = sys.executionContext
-
     val mockQtService = mock(classOf[QTService])
 
     val ids = Vector(

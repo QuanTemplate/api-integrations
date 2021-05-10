@@ -15,8 +15,6 @@ import com.quantemplate.ActorSystemSuite
 
 class CapitalIQServiceSpec extends ActorSystemSuite:
   test("it should properly adapt a valid response") {
-    given sys: ActorSystem[Nothing] = actorSystem()
-    given ExecutionContext = sys.executionContext
     given Config = Config.load()
 
     val mockHttpService = mock(classOf[HttpService])
