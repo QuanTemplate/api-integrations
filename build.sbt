@@ -45,6 +45,7 @@ lazy val capitaliq = (project in file("capitaliq"))
     ),
 
     assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
+    assembly / assemblyJarName := s"qt-integrations-${version.value}.jar"
   )
 
 Compile / run / fork := true
