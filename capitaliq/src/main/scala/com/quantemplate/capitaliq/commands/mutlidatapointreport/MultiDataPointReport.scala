@@ -81,6 +81,9 @@ class MultiDataPointReport(capitalIqService: CapitalIQService, qtService: QTServ
       case ColumnDef("IQ_ULT_PARENT", _) => 
         IQ_ULT_PARENT.apply
 
+      case ColumnDef("IQ_ULT_PARENT_CIQID", _) => 
+        IQ_ULT_PARENT_CIQID.apply
+
       case ColumnDef("IQ_COMPANY_ID", _) =>
         id => 
           IQ_COMPANY_ID(

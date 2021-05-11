@@ -28,7 +28,7 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar apply ./data/revReport.yml
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/revReport.yml
         ```
 
         Check out the [config file](./data/revReport.yml)
@@ -36,14 +36,14 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with CLI args:
         ```sh
-        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
         ```
 
 - Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset
 
      - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/capitaliq-assembly-0.1.1.jar apply ./data/multiPointReport.yml
+        java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/multiPointReport.yml
         ```
 
         Check out the [config file](./data/multiPointReport.yml)

@@ -2,7 +2,7 @@ name := "api-integrations"
 
 ThisBuild / organization := "com.quantemplate"
 ThisBuild / scalaVersion := "3.0.0-RC2"
-ThisBuild / version := "0.1.1"
+ThisBuild / version := "0.1.2"
 
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.4"
@@ -45,6 +45,7 @@ lazy val capitaliq = (project in file("capitaliq"))
     ),
 
     assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
+    assembly / assemblyJarName := s"qt-integrations-${version.value}.jar"
   )
 
 Compile / run / fork := true

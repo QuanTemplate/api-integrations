@@ -179,6 +179,14 @@ object CapitalIQ:
           ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT" )
         }
 
+    case class IQ_ULT_PARENT_CIQID(identifier: Identifier) extends Mnemonic:
+      def name = productPrefix
+    object IQ_ULT_PARENT_CIQID:
+      given Encoder[IQ_ULT_PARENT_CIQID] = 
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
+          ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT_CIQID" )
+        }
+
     case class IQ_COMPANY_ID(properties: IQ_COMPANY_ID.Fn, identifier: Identifier) extends Mnemonic:
       def name = productPrefix
     object IQ_COMPANY_ID:
@@ -1418,6 +1426,7 @@ object CapitalIQ:
       case m: IQ_COMPANY_NAME_LONG => m.asJson
       case m: IQ_COMPANY_ID => m.asJson
       case m: IQ_ULT_PARENT => m.asJson
+      case m: IQ_ULT_PARENT_CIQID => m.asJson
       case m: IQ_MARKETCAP => m.asJson
       case m: IQ_NI => m.asJson
       case m: IQ_TOTAL_EMPLOYEES => m.asJson
