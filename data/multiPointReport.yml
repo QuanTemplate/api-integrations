@@ -7,7 +7,7 @@ params:
   date: 2021-05-05
   identifiers:
     distinct: true
-    limit: 30
+    limit: 9
     dataset: 
       datasetId: d-vvgqdpct2jh3ys3c4iuncyjh
       columnName: Company ID 
