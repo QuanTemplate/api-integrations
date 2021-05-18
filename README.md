@@ -2,17 +2,14 @@
 
 Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) leveraging the [Quantemplate API](https://quantemplate.readme.io/docs/getting-started).
 
+Learn more at https://quantemplate.readme.io/
+
 If you need help please contact us at support@quantemplate.com
 
 
 # Capital IQ
 
-Capital IQ is a reservoir of financial data which could be accessed through the API.
-Data from the Capital IQ API is then concatenated, transformed and uploaded through [Quantemplate Data Ingress API](https://quantemplate.readme.io/docs/getting-started#-data-ingress)
-
-The diagram below describes a potential integration pattern where CapitalIQ data is used as an reference dataset in the [automap operation](https://help.quantemplate.com/about-automap-values) 
-
-![Diagram of the capitaliq - qt integration](capiq-qt.png)
+Capital IQ is a reservoir of financial data which could be accessed through the API and used in the Quantemplate.
 
 
 ## Running the program
@@ -24,11 +21,11 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
 ### Use-cases
 
-- Generating a total revenue report from the Capital IQ data and uploading it to the Quantemplate dataset
+- [Generating a total revenue report from the Capital IQ data and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration)
 
     - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/revReport.yml
+        java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/revReport.yml
         ```
 
         Check out the [config file](./data/revReport.yml)
@@ -36,14 +33,14 @@ The diagram below describes a potential integration pattern where CapitalIQ data
 
     - with CLI args:
         ```sh
-        cat ./data/capitaliq-identifiers.txt | java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+        cat ./data/capitaliq-identifiers.txt | java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
         ```
 
-- Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset
+- [Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration-2)
 
      - with yaml config:
         ```sh
-        java -jar ./capitaliq/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/multiPointReport.yml
+        java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/multiPointReport.yml
         ```
 
         Check out the [config file](./data/multiPointReport.yml)
@@ -68,7 +65,7 @@ An example set of identifiers could be found in the `./data/capitaliq-identifier
 
 ### Available Mnemonics
 
-Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/domain/CapitalIQ.scala)
+Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/capitaliq/CapitalIQ.scala)
 
 ## Development environment setup
 

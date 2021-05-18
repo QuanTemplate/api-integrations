@@ -10,12 +10,11 @@ val CirceVersion = "0.14.0-M3"
 
 lazy val root = (project in file("."))
   .aggregate(
-    capitaliq
+    integrations
   )
 
-lazy val capitaliq = (project in file("capitaliq"))
+lazy val integrations = (project in file("integrations"))
   .settings(
-    name := "capitaliq",
     libraryDependencies ++= Seq(
       // akka
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
@@ -44,7 +43,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       "org.scalameta" %% "munit" % "0.7.23" % Test
     ),
 
-    assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
+    assembly / mainClass := Some("com.quantemplate.integrations.Main"),
     assembly / assemblyJarName := s"qt-integrations-${version.value}.jar"
   )
 
