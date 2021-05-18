@@ -12,7 +12,7 @@ object Config:
     case class Credentials(username: String, password: String)
 
     def load() =
-      val conf = ConfigFactory.load
+      val conf = ConfigFactory.load("capitaliq")
 
       CapitalIQ(
         endpoint = conf.getString("capitaliq.endpoint"),
@@ -35,7 +35,7 @@ object Config:
     case class Api(baseUrl: String)
 
     def load() = 
-      val conf = ConfigFactory.load
+      val conf = ConfigFactory.load("quantemplate")
 
        Quantemplate(
         auth = Quantemplate.Auth(
@@ -46,4 +46,13 @@ object Config:
         api = Quantemplate.Api(
           baseUrl = conf.getString("quantemplate.api.baseUrl")
         )
+      )
+
+  case class GoogleMaps(apiKey: String)
+  object GoogleMaps:
+    def load() = 
+      val conf = ConfigFactory.load("google-maps")
+    
+      GoogleMaps(
+        apiKey = conf.getString("googlemaps.apiKey")
       )

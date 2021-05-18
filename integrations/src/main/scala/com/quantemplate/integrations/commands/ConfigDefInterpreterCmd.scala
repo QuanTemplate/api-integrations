@@ -13,6 +13,7 @@ import com.quantemplate.integrations.capitaliq.CapitalIQ.Identifier
 import com.quantemplate.integrations.capitaliq.Identifiers
 import com.quantemplate.integrations.commands.revenuereport.*
 import com.quantemplate.integrations.commands.mutlidatapointreport.*
+import com.quantemplate.integrations.commands.addresscleansing.*
 
 object ConfigDefInterpreterCmd:
   lazy val logger = LoggerFactory.getLogger(getClass)
@@ -25,8 +26,12 @@ object ConfigDefInterpreterCmd:
       {
         case config: RevenueReportConfigDef => 
           RevenueReportCmd().fromConfigFile(config, configPath)
+          
         case config: MultiPointReportConfigDef => 
           MultiDataPointReportCmd().fromConfigFile(config, configPath)
+          
+        case config: AddressCleansingConfigDef =>
+          AddressCleansingCmd().fromConfigFile(config)
       }
     )
   }
@@ -41,6 +46,7 @@ given Decoder[ConfigDef] = Decoder.instance[ConfigDef] { c =>
   c.get[String]("command").flatMap { 
     case `revenueReportCmdName`    => c.get[RevenueReportConfigDef]("params")
     case `multiPointReportCmdName` => c.get[MultiPointReportConfigDef]("params")
+    case `addressCleansingCmdName` => c.get[AddressCleansingConfigDef]("params")
   }
 }
 

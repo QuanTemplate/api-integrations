@@ -1,0 +1,14 @@
+command: cleanseAddresses
+params: 
+  orgId: c-qed-insurance-zpx      
+  source:
+    dataset: d-vvgqdpct2jh3ys3c4iuncyjh
+    # triggeredBy:
+    #   - action: DatasetUpdated
+    #     datasetId: d-42b4qzizirc5mq5eyxx4tp5t
+  target:
+    dataset: d-42b4qzizirc5mq5eyxx4tp5t
+    # onFinished:
+    #   - action: ExecutePipeline
+    #     pipelineId: p-1234
+    

@@ -35,6 +35,7 @@ lazy val integrations = (project in file("integrations"))
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
+      "com.google.maps" % "google-maps-services" % "0.18.0",
       "org.mockito" % "mockito-core" % "3.9.0" % Test
     ),
 
