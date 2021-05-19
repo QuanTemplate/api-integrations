@@ -1,7 +1,6 @@
 package com.quantemplate.integrations.commands.addresscleansing
 
 import io.circe.Decoder
-import io.circe.syntax.given
 import cats.syntax.apply.given
 import com.quantemplate.integrations.commands.ConfigDef
 
@@ -21,7 +20,7 @@ object AddressCleansingConfigDef:
   }
 
 case class Source(
-  dataset: String,
+  pipeline: Source.PipelineSource,
   triggeredBy: Option[Vector[Source.Notification]]
 )
 
@@ -32,14 +31,31 @@ object Source:
 
   given Decoder[Notification] = Decoder { c => 
      c.get[String]("action").flatMap {
-      case "DatasetUpdated" => c.get[String]("datasetId").map(Notification.DatasetUpdated(_))
-      case "PipelineCompleted" => c.get[String]("pipelineId").map(Notification.PipelineCompleted(_))
+      case "DatasetUpdated" => 
+        c.get[String]("datasetId").map(Notification.DatasetUpdated(_))
+
+      case "PipelineCompleted" => 
+        c.get[String]("pipelineId").map(Notification.PipelineCompleted(_))
     }
   }
 
+  case class PipelineSource(
+    pipelineId: String, 
+    outputId: String, 
+    column: Option[String]
+  )
+  object PipelineSource:
+    given Decoder[PipelineSource] = Decoder { c => 
+      (
+        c.get[String]("pipelineId"),
+        c.get[String]("outputId"),
+        c.get[Option[String]]("column")
+      ).mapN(PipelineSource.apply)
+    }
+
   given Decoder[Source] = Decoder { c => 
     (
-      c.get[String]("dataset"),
+      c.get[PipelineSource]("pipeline"),
       c.get[Option[Vector[Notification]]]("triggeredBy")
     ).mapN(Source.apply)
   }
@@ -56,7 +72,8 @@ object Target:
   
   given Decoder[Trigger] = Decoder { c =>
     c.get[String]("action").flatMap {
-      case "ExecutePipeline" => c.get[String]("pipelineId").map(Trigger.ExecutePipeline(_))
+      case "ExecutePipeline" => 
+        c.get[String]("pipelineId").map(Trigger.ExecutePipeline(_))
     }
   }
   

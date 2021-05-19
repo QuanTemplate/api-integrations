@@ -8,7 +8,6 @@ import scala.concurrent.ExecutionContext
 import io.circe.syntax.given
 import cats.syntax.apply.given
 import cats.syntax.traverse.given
-import cats.syntax.functorFilter.given
 
 import com.quantemplate.integrations.common.*
 import com.quantemplate.integrations.capitaliq.*
@@ -84,22 +83,8 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
       }
 
   private def loadIdentifiersFromCsvString(columnName: Option[String])(str: String) =
-    val separator = ','
-    val table = str.split('\n').toVector.map(_.split(separator).toVector)
-
-    val namedColumnIndex = 
-      for 
-        firstRow <- table.lift(0)
-        name <- columnName
-        index <- firstRow.indexOf(name) match 
-          case -1 => None
-          case n => Some(n) 
-      yield index
-
-    val columnIndex = namedColumnIndex getOrElse 0
-
     Identifiers(
-      table.mapFilter(_.lift(columnIndex)): _*
+      CSV.dataFromColumn(str, columnName): _*
     )
 
 object IdentifierLoader:

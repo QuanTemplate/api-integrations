@@ -1,8 +1,11 @@
 command: cleanseAddresses
 params: 
-  orgId: c-qed-insurance-zpx      
+  orgId: c-demo-sov-rms-hvv 
   source:
-    dataset: d-vvgqdpct2jh3ys3c4iuncyjh
+    pipeline: 
+      pipelineId: p-yaukd2w2lvdv6r-mmmrnlteg
+      outputId: o-uh4sjf42ozcn5vnt2xcapjd5
+      column: LOCNAME
     # triggeredBy:
     #   - action: DatasetUpdated
     #     datasetId: d-42b4qzizirc5mq5eyxx4tp5t

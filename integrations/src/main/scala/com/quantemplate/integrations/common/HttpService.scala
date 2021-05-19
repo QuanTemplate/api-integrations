@@ -27,6 +27,16 @@ class HttpService(using system: ActorSystem[_]):
       body <- getResponseBody(res)
     yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
+  // def get[B: Decoder](
+  //   endpoint: String,
+  //   auth: Option[Authorization] 
+  // ): Future[B] =
+  //   for
+  //     res <- GET(endpoint, auth)
+  //     body <- getResponseBody(res)
+  //     result <- Unmarshal(body.get).to[B]
+  //   yield result
+
   def post[B: Decoder](
     endpoint: String, 
     req: RequestEntity, 

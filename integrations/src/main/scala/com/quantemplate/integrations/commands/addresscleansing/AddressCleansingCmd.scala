@@ -5,51 +5,58 @@ import java.nio.file.Path
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Using}
 import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
-import com.quantemplate.integrations.common.{Config, HttpService}
+import com.quantemplate.integrations.common.*
 import com.quantemplate.integrations.capitaliq.CapitalIQService
 import com.quantemplate.integrations.qt.QTService
+import com.quantemplate.integrations.qt.QTService.PipelineExecutionResponse
 
 import com.quantemplate.integrations.commands.IdentifierLoader
+import com.quantemplate.integrations.gmaps.GeocodingService
 
 
 class AddressCleansingCmd:
-  // private given Config.CapitalIQ = Config.CapitalIQ.load()
-  // private given Config.Quantemplate = Config.Quantemplate.load()
   private given Config.GoogleMaps = Config.GoogleMaps.load()
+  private given Config.Quantemplate = Config.Quantemplate.load()
   private given system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "api-integrations")
   private given ExecutionContext = system.executionContext
 
-  private lazy val logger = LoggerFactory.getLogger(getClass)
-
-  // private val httpService = HttpService()
-  // private val qtService = QTService(httpService)
-  // private val identifiersLoader = IdentifierLoader(qtService)
-  // private val capIqService = CapitalIQService(httpService)
-  // private val multiDataReport = MultiDataPointReport(capIqService, qtService)
+  private given logger: Logger = LoggerFactory.getLogger(getClass)
+  private val geocodingService = GeocodingService()
+  private val qtService = QTService(HttpService())
 
   def fromConfigFile(config: AddressCleansingConfigDef) = 
-    println("hello world")
-    // identifiersLoader
-    //   .loadIdentifiersFromConfig(config.identifiers, configPath, config.orgId)
-    //   .map(_.getOrElse(identifiersLoader.loadIdentifiersFromStdin()))
-    //   .map(config.toCmdConfig(_))
-    //   .map(run)
+    measure {
+      for 
+        execRes <- qtService.executePipeline(
+          config.orgId, 
+          config.source.pipeline.pipelineId
+        )
 
-  // private def run(config: CmdConfig) =
-    // if config.identifiers.isEmpty then 
-    //   logger.error("No valid CapitalIQ identifiers were provided. Aborting")
-    //   Runtime.getRuntime.halt(1)
+        // wait for execution to finish
 
-    // multiDataReport
-    //   .generateSpreadSheet(config)
-    //   .onComplete { 
-    //     case Failure(e) => 
-    //       logger.error("Failed to generate a multi data point report", e)
-    //       Runtime.getRuntime.halt(1)
+        csvStr <- qtService.downloadPipelineOutput(
+          config.orgId,
+          config.source.pipeline.pipelineId,
+          execRes.executionId,
+          config.source.pipeline.outputId
+        )
 
-    //     case Success(_) =>
-    //       Runtime.getRuntime.halt(0)
-    //   }
+        addressColumns = CSV.dataFromColumn(csvStr, config.source.pipeline.column)
+
+        geocodingRes <- geocodingService.geocode(addressColumns)
+        _ = println(geocodingRes)
+
+      yield ()
+    }.onComplete { 
+      case Failure(e) => 
+        logger.error("Failed to generate a multi data point report", e)
+        Runtime.getRuntime.halt(1)
+
+      case Success(_) =>
+        Runtime.getRuntime.halt(0)
+    }
+  
