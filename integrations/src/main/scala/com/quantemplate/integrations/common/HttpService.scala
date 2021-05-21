@@ -18,7 +18,7 @@ class HttpService(using system: ActorSystem[_]):
 
   given ExecutionContext = system.executionContext
 
-  def get(
+  def getRaw(
     endpoint: String,
     auth: Option[Authorization] 
   ): Future[Response] =
@@ -27,15 +27,16 @@ class HttpService(using system: ActorSystem[_]):
       body <- getResponseBody(res)
     yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
-  // def get[B: Decoder](
-  //   endpoint: String,
-  //   auth: Option[Authorization] 
-  // ): Future[B] =
-  //   for
-  //     res <- GET(endpoint, auth)
-  //     body <- getResponseBody(res)
-  //     result <- Unmarshal(body.get).to[B]
-  //   yield result
+  def get[B: Decoder](
+    endpoint: String,
+    auth: Option[Authorization] 
+  ): Future[B] =
+    for
+      res <- GET(endpoint, auth)
+      body <- getResponseBody(res)
+      // _ = println(body.map(_.utf8String))
+      result <- Unmarshal(body.get).to[B]
+    yield result
 
   def post[B: Decoder](
     endpoint: String, 
@@ -45,6 +46,7 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- POST(endpoint, req, auth)
       body <- getResponseBody(res)
+      //  _ = println(body.map(_.utf8String))
       result <- Unmarshal(body.get).to[B]
     yield result
 

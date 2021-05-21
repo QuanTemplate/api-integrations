@@ -5,26 +5,20 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import cats.syntax.option.given
-import cats.syntax.apply.given
-import akka.http.scaladsl.model.FormData
+import akka.http.scaladsl.model.{HttpEntity, FormData}
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 
 import com.quantemplate.integrations.common.{View, Config, HttpService}
-import akka.http.scaladsl.model.HttpEntity
+import com.quantemplate.integrations.common.HttpService.*
+import com.quantemplate.integrations.qt.QTModels.*
 
-class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Config.Quantemplate):
-  import QTService.*
-  
+
+class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Config.Quantemplate):  
   lazy val logger = LoggerFactory.getLogger(getClass)
-
-  private def datasetEndpoint(orgId: String, datasetId: String) = 
-    s"${conf.api.baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
-
-  private def executionsEndpoints(orgId: String, pipelineId: String) =
-    s"${conf.api.baseUrl}/v1/organisations/$orgId/pipelines/$pipelineId/executions"
+  lazy val endpoints = QTEndpoints(conf.api.baseUrl)
 
   def executePipeline(orgId: String, pipelineId: String) =
-    val endpoint = executionsEndpoints(orgId, pipelineId)
+    val endpoint = endpoints.executions(orgId, pipelineId)
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
@@ -33,11 +27,11 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     yield res
 
   def listExecutions(orgId: String, pipelineId: String) =
-    val endpoint = executionsEndpoints(orgId, pipelineId)
+    val endpoint = endpoints.executions(orgId, pipelineId)
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
-      res <- httpService.get(endpoint, auth)
+      res <- httpService.get[Vector[Execution]](endpoint, auth)
     yield res
 
   def downloadPipelineOutput(
@@ -46,42 +40,42 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     executionId: String, 
     outputId: String
   ) =  
-    val endpoint = s"${executionsEndpoints(orgId, pipelineId)}/$executionId/outputs/$outputId"
+    val endpoint = endpoints.executionsOutput(orgId, pipelineId, executionId, outputId)
 
     for 
       auth <- getToken().map(getTokenAuthHeaders)
-      res <- httpService.get(endpoint, auth)
+      res <- httpService.getRaw(endpoint, auth)
     yield res match
-      case HttpService.Response(200, Some(res)) => res 
-      case res @ HttpService.Response(403, _) => 
+      case Response(200, Some(res)) => res
+      case res @ Response(404, _) => 
+        throw NotFound("pipeline output", res)
+      case res @ Response(403, _) => 
         throw Forbidden("pipeline output download", res)
       case other => 
         throw UnexpectedError(other)
 
   def uploadDataset(view: View, orgId: String, datasetId: String) =
-    val endpoint = datasetEndpoint(orgId, datasetId)
+    val endpoint = endpoints.dataset(orgId, datasetId)
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
       res <- httpService.post(endpoint, view.toBytes, auth)
-
     yield res match 
-      case res @ HttpService.Response(200, _) => ()
-      case res @ HttpService.Response(403, _) => 
+      case Response(200, _) => ()
+      case res @ Response(403, _) => 
         throw Forbidden("dataset upload", res)
       case other => 
         throw UnexpectedError(other)
 
   def downloadDataset(orgId: String, datasetId: String) =
-    val endpoint = datasetEndpoint(orgId, datasetId)
+    val endpoint = endpoints.dataset(orgId, datasetId)
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
-      res <- httpService.get(endpoint, auth)
-      
+      res <- httpService.getRaw(endpoint, auth) 
     yield res match
-      case HttpService.Response(200, Some(res)) => res 
-      case res @ HttpService.Response(403, _) => 
+      case Response(200, Some(res)) => res 
+      case res @ Response(403, _) => 
         throw Forbidden("dataset download", res)
       case other => 
         throw UnexpectedError(other)
@@ -99,40 +93,18 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       ).toEntity,
       None
     )
-object QTService:
-  case class TokenResponse(accessToken: String)
-  object TokenResponse:
-    given Decoder[TokenResponse] = Decoder.forProduct1("access_token")(TokenResponse(_))
 
-  case class PipelineExecutionResponse(
-    executionId: String,
-    runNumber: Int,
-    version: Int,
-  )
-  object PipelineExecutionResponse:
-    given Decoder[PipelineExecutionResponse] = Decoder { c => 
-      (
-        c.get[String]("executionId"),
-        c.get[Int]("runNumber"),
-        c.get[Int]("version")
-      ).mapN(PipelineExecutionResponse.apply)
-    }
+class QTEndpoints(baseUrl: String):
+  def dataset(orgId: String, datasetId: String) = 
+    s"${baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
 
-  type ExecutionStatus =  "Started" | "Succeeded" | "Failed" | "Canceled"
-  given Decoder[ExecutionStatus] = Decoder.decodeString
-    .ensure({ case e: ExecutionStatus => true; case other => false }, "Not a valid status")
-    .map(_.asInstanceOf[ExecutionStatus]) 
-  
-  case class Execution(
-     id: String,
-     status: ExecutionStatus
-  )
-  object Execution:
-    given Decoder[Execution] = Decoder { c => 
-      
-      (
-        c.get[String]("id"),
-        c.get[ExecutionStatus]("status"),
-      ).mapN(Execution.apply)
-      
-    }
+  def executions(orgId: String, pipelineId: String) =
+    s"${baseUrl}/v1/organisations/$orgId/pipelines/$pipelineId/executions"
+
+  def executionsOutput(
+    orgId: String, 
+    pipelineId: String, 
+    executionId: String, 
+    outputId: String
+  ) =
+    s"${executions(orgId, pipelineId)}/$executionId/outputs/$outputId"

@@ -13,3 +13,8 @@ case class Forbidden(action: String, res: HttpService.Response) extends QTError:
 
 case class UnexpectedError(res: HttpService.Response) extends QTError:
   override def toString = s"Unexpected error: $res"
+
+case class NotFound(action: String, res: HttpService.Response)  extends QTError:
+  override def toString =
+    s"""Not found: $action
+      |"Response: $res""".stripMargin
