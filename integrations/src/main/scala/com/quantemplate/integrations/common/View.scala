@@ -9,7 +9,7 @@ trait View:
   def toBytes: Array[Byte]
 
 object View:
-  val blankCell = "-"
+  val blankCell = ""
 
   type ReportRows = Vector[Vector[Option[String]]]
 

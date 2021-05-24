@@ -13,14 +13,15 @@ import scala.concurrent.duration.given
 import scala.util.{Failure, Success, Using}
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
+import com.google.maps.model.AddressComponentType.*
 
 import com.quantemplate.integrations.common.*
 import com.quantemplate.integrations.capitaliq.CapitalIQService
 import com.quantemplate.integrations.qt.QTService
 import com.quantemplate.integrations.qt.QTModels.*
-
 import com.quantemplate.integrations.commands.IdentifierLoader
 import com.quantemplate.integrations.gmaps.GeocodingService
+
 class AddressCleansingCmd:
   import AddressCleansingCmd.*
   import AddressCleanseError.*
@@ -39,12 +40,13 @@ class AddressCleansingCmd:
   def fromConfigFile(config: AddressCleansingConfigDef) =
     import config.{ orgId } 
     import config.source.pipeline.{ pipelineId, outputName, column }
+    import config.target.{ dataset as targetDatasetId }
 
     measure {
       for 
         initExec <- qtService.executePipeline(orgId, pipelineId)
         executionId = initExec.id
-        _ = logger.info("Pipeline execution {} has started", initExec)
+        _ = logger.info("Pipeline execution has started")
 
         _ = logger.info("Waiting for the execution to finish...")
         finishedExec <- waitForExecutionToFinish(orgId, pipelineId, executionId)
@@ -53,11 +55,29 @@ class AddressCleansingCmd:
         csvStr <- qtService.downloadPipelineOutput(orgId, pipelineId, executionId, outputId)
         _ = logger.info("Retrieved the pipeline output")
 
-        addressColumns = CSV.dataFromColumn(csvStr, column)
-        geocodingRes <- geocodingService.geocode(addressColumns)
+        rows <- geocodingService.getGeocodedRows(
+          addresses = CSV.dataFromColumn(csvStr, column),
+          // addresses = Vector(
+          //   "Poznań", "Grudziąc", "Otwock", "Szczebrzeszyn", "東京","北海道"
+          // ),
+          columns = Vector(
+            STREET_NUMBER,
+            ROUTE,
+            LOCALITY,
+            ADMINISTRATIVE_AREA_LEVEL_3,
+            ADMINISTRATIVE_AREA_LEVEL_2,
+            ADMINISTRATIVE_AREA_LEVEL_1,
+            COUNTRY,
+            POSTAL_CODE
+          )
+        )
         _ = logger.info("Retrieved the Geocoded result")
-        // _ = println(geocodingRes)
 
+        sheet = constructSpreadsheet(rows)
+        _ <- qtService.uploadDataset(sheet, orgId, targetDatasetId)
+        _ = logger.info("Uploaded the spreadsheet")
+
+        // todo: wait for dataset to be uploaded and execute pipeline B
       yield ()
     } onComplete { 
       case Failure(e) => 
@@ -67,6 +87,9 @@ class AddressCleansingCmd:
       case Success(_) =>
         Runtime.getRuntime.halt(0)
     }
+
+  private def constructSpreadsheet(rows: Vector[Vector[Option[String]]]) =
+     Xlsx(Vector(View.SheetModel("Geocoded result", rows)))
   
   private def waitForExecutionToFinish(orgId: String, pipelineId: String, execId: String) =
     measure {

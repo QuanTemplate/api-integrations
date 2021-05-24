@@ -18,4 +18,6 @@ object CSV:
 
     val columnIndex = namedColumnIndex getOrElse 0
 
-    table.mapFilter(_.lift(columnIndex))
+    table
+      .mapFilter(_.lift(columnIndex))
+      .drop(1) // drop column name
