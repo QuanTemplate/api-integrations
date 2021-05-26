@@ -42,14 +42,16 @@ object Source:
   case class PipelineSource(
     pipelineId: String, 
     outputName: String, 
-    column: Option[String]
+    dataColumn: Option[String],
+    idColumn: Option[String]
   )
   object PipelineSource:
     given Decoder[PipelineSource] = Decoder { c => 
       (
         c.get[String]("pipelineId"),
         c.get[String]("outputName"),
-        c.get[Option[String]]("column")
+        c.get[Option[String]]("dataColumn"),
+        c.get[Option[String]]("idColumn")
       ).mapN(PipelineSource.apply)
     }
 

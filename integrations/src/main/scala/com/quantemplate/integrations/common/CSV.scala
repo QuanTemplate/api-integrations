@@ -20,4 +20,4 @@ object CSV:
 
     table
       .mapFilter(_.lift(columnIndex))
-      .drop(1) // drop column name
+

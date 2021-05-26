@@ -14,6 +14,7 @@ import scala.util.{Failure, Success, Using}
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import com.google.maps.model.AddressComponentType.*
+import cats.syntax.option.given
 
 import com.quantemplate.integrations.common.*
 import com.quantemplate.integrations.capitaliq.CapitalIQService
@@ -39,7 +40,7 @@ class AddressCleansingCmd:
 
   def fromConfigFile(config: AddressCleansingConfigDef) =
     import config.{ orgId } 
-    import config.source.pipeline.{ pipelineId, outputName, column }
+    import config.source.pipeline.{ pipelineId, outputName, dataColumn, idColumn }
     import config.target.{ dataset as targetDatasetId }
 
     measure {
@@ -55,29 +56,16 @@ class AddressCleansingCmd:
         csvStr <- qtService.downloadPipelineOutput(orgId, pipelineId, executionId, outputId)
         _ = logger.info("Retrieved the pipeline output")
 
-        rows <- geocodingService.getGeocodedRows(
-          addresses = CSV.dataFromColumn(csvStr, column),
-          // addresses = Vector(
-          //   "Poznań", "Grudziąc", "Otwock", "Szczebrzeszyn", "東京","北海道"
-          // ),
-          columns = Vector(
-            STREET_NUMBER,
-            ROUTE,
-            LOCALITY,
-            ADMINISTRATIVE_AREA_LEVEL_3,
-            ADMINISTRATIVE_AREA_LEVEL_2,
-            ADMINISTRATIVE_AREA_LEVEL_1,
-            COUNTRY,
-            POSTAL_CODE
-          )
-        )
+        sourceAddresses = CSV.dataFromColumn(csvStr, dataColumn)
+        sourceAddressesBody = sourceAddresses.drop(1)
+        sourceIds = CSV.dataFromColumn(csvStr, idColumn)
+
+        rows <- geocodingService.getGeocodedRows(sourceAddressesBody)
         _ = logger.info("Retrieved the Geocoded result")
 
-        sheet = constructSpreadsheet(rows)
+        sheet = constructSpreadsheet(rows, sourceAddresses, sourceIds)
         _ <- qtService.uploadDataset(sheet, orgId, targetDatasetId)
         _ = logger.info("Uploaded the spreadsheet")
-
-        // todo: wait for dataset to be uploaded and execute pipeline B
       yield ()
     } onComplete { 
       case Failure(e) => 
@@ -88,8 +76,15 @@ class AddressCleansingCmd:
         Runtime.getRuntime.halt(0)
     }
 
-  private def constructSpreadsheet(rows: Vector[Vector[Option[String]]]) =
-     Xlsx(Vector(View.SheetModel("Geocoded result", rows)))
+  private def constructSpreadsheet(
+    rows: Vector[Vector[Option[String]]], 
+    sourceAddresses: Vector[String], 
+    sourceIds: Vector[String]
+  ) =
+    val sheetModel = View.SheetModel("Geocoded result", rows)
+      .prependColumns(sourceAddresses, sourceIds)
+
+    Xlsx(Vector(sheetModel))
   
   private def waitForExecutionToFinish(orgId: String, pipelineId: String, execId: String) =
     measure {

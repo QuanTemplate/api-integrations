@@ -34,7 +34,6 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- GET(endpoint, auth)
       body <- getResponseBody(res)
-      // _ = println(body.map(_.utf8String))
       result <- Unmarshal(body.get).to[B]
     yield result
 
@@ -46,7 +45,6 @@ class HttpService(using system: ActorSystem[_]):
     for
       res <- POST(endpoint, req, auth)
       body <- getResponseBody(res)
-      //  _ = println(body.map(_.utf8String))
       result <- Unmarshal(body.get).to[B]
     yield result
 

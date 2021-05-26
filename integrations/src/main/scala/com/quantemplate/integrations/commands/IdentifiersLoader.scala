@@ -84,7 +84,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
 
   private def loadIdentifiersFromCsvString(columnName: Option[String])(str: String) =
     Identifiers(
-      CSV.dataFromColumn(str, columnName): _*
+      CSV.dataFromColumn(str, columnName).drop(1): _*
     )
 
 object IdentifierLoader:

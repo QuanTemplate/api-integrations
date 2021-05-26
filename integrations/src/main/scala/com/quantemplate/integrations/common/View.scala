@@ -13,7 +13,13 @@ object View:
 
   type ReportRows = Vector[Vector[Option[String]]]
 
-  case class SheetModel(name: String, rows: ReportRows)
+  case class SheetModel(name: String, rows: ReportRows):
+    def prependColumns(cols: Vector[String]*) = 
+      copy(
+        rows = rows.zipWithIndex.map { (row, i) => 
+          cols.foldLeft(row)((acc, col) => col.lift(i) +: acc)
+        }
+      )
 
 class Xlsx(sheets: Vector[View.SheetModel]) extends View:
   import View.*

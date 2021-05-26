@@ -14,20 +14,19 @@ import cats.syntax.option.given
 import com.quantemplate.integrations.common.{Config, View, Xlsx}
 
 class GeocodingService()(using conf: Config.GoogleMaps):
+  import GeocodingService.*
+  
   private lazy val context = GeoApiContext.Builder()
     .apiKey(conf.apiKey)
     .build()
 
   def shutdown() = context.shutdown()
 
-  def getGeocodedRows(
-    addresses: Vector[String], 
-    columns: Vector[AddressComponentType]
-  )(using ExecutionContext) = 
+  def getGeocodedRows(addresses: Vector[String])(using ExecutionContext) = 
     addresses
       .map(geocode)
       .sequence
-      .map(constructRows(columns))
+      .map(constructRows)
    
   def geocode(address: String): Future[Option[Vector[GeocodingResult]]] = 
     val p = Promise[Option[Vector[GeocodingResult]]]()
@@ -38,6 +37,7 @@ class GeocodingService()(using conf: Config.GoogleMaps):
       .setCallback {
         new PendingResult.Callback:
           override def onResult(res: Array[GeocodingResult]) =
+            // `ZeroResult` responses are not treated as errors by the API
             p.success(Option.unless(res.isEmpty)(res.toVector))
 
           override def onFailure(err: Throwable) = 
@@ -48,13 +48,23 @@ class GeocodingService()(using conf: Config.GoogleMaps):
 
     p.future
 
-  private def constructRows(columns: Vector[AddressComponentType])(res: Vector[Option[Vector[GeocodingResult]]]) =
-    val headerRow = columns.map(_.toString.some)
+  private def constructRows(res: Vector[Option[Vector[GeocodingResult]]]) =
+    val headerRow =
+      Vector("latitude", "longitude", "place_id", "formatted_address").map(_.some) concat
+      dynamicAddressComponents.map(_.toString.some)
+                    
     val dataRows = res.map { 
-      // take only the first result for ambiguous addresses
+      // ~ taking only the first result for ambiguous addresses
+      // this should be smarter for a non-POC
       _.flatMap(_.lift(0))
-       .map(r => columns.map(findAddressComponent(r)))
-       .getOrElse(Vector.tabulate(columns.length)(_ => None))
+       .map { r =>
+          val loc = r.geometry.location
+        
+           Vector(loc.lat, loc.lng, r.placeId, r.formattedAddress).map(_.toString.some) concat
+          dynamicAddressComponents.map(findAddressComponent(r)) 
+  
+       }
+       .getOrElse(Vector.tabulate(dynamicAddressComponents.length)(_ => None))
     }
 
     headerRow +: dataRows
@@ -71,3 +81,15 @@ object GeocodingService:
   import com.google.maps.model.AddressComponentType.*
   given Releasable[GeocodingService] with 
     def release(r: GeocodingService) = r.shutdown()
+
+  lazy val dynamicAddressComponents = Vector(
+    STREET_NUMBER,
+    ROUTE,
+    LOCALITY,
+    ADMINISTRATIVE_AREA_LEVEL_3,
+    ADMINISTRATIVE_AREA_LEVEL_2,
+    ADMINISTRATIVE_AREA_LEVEL_1,
+    COUNTRY,
+    POSTAL_CODE,
+    POSTAL_CODE_SUFFIX
+  )
