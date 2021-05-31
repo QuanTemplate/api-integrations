@@ -7,12 +7,10 @@ params:
       outputName: "Addresses for Geocoding: Location Import: RMS"
       dataColumn: LOCNAME
       idColumn: LOCNUM
-    # triggeredBy:
-    #   - action: DatasetUpdated
-    #     datasetId: d-42b4qzizirc5mq5eyxx4tp5t
+
   target:
     dataset: d-pkusqtimlrbnsrdlt-ho4ud2
-    # onFinished:
-    #   - action: ExecutePipeline
-    #     pipelineId: p-1234
+    onFinished:
+      - action: ExecutePipeline
+        pipelineId: p-r-o2ymaypvhyhtol6j62plsi
     

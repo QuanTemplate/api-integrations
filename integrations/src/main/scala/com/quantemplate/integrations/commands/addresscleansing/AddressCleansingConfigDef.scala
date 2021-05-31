@@ -19,25 +19,9 @@ object AddressCleansingConfigDef:
     ).mapN(AddressCleansingConfigDef.apply)
   }
 
-case class Source(
-  pipeline: Source.PipelineSource,
-  triggeredBy: Option[Vector[Source.Notification]]
-)
-
+case class Source(pipeline: Source.PipelineSource)
 object Source: 
-  enum Notification:
-    case DatasetUpdated(datasetId: String)
-    case PipelineCompleted(pipelineId: String)
-
-  given Decoder[Notification] = Decoder { c => 
-     c.get[String]("action").flatMap {
-      case "DatasetUpdated" => 
-        c.get[String]("datasetId").map(Notification.DatasetUpdated(_))
-
-      case "PipelineCompleted" => 
-        c.get[String]("pipelineId").map(Notification.PipelineCompleted(_))
-    }
-  }
+ 
 
   case class PipelineSource(
     pipelineId: String, 
@@ -55,20 +39,17 @@ object Source:
       ).mapN(PipelineSource.apply)
     }
 
-  given Decoder[Source] = Decoder { c => 
-    (
-      c.get[PipelineSource]("pipeline"),
-      c.get[Option[Vector[Notification]]]("triggeredBy")
-    ).mapN(Source.apply)
-  }
+  given Decoder[Source] = Decoder(_.get[PipelineSource]("pipeline").map(Source(_)))
 
 
 case class Target(
   dataset: String,
-  onFinished: Option[Vector[Target.Trigger]]
+  onFinished: Option[Target.Triggers]
 )
 
 object Target:
+  type Triggers = Vector[Target.Trigger]
+
   enum Trigger:
     case ExecutePipeline(pipelineId: String)
   

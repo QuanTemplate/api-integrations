@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import com.google.maps.model.AddressComponentType.*
 import cats.syntax.option.given
+import cats.syntax.traverse.given
 
 import com.quantemplate.integrations.common.*
 import com.quantemplate.integrations.capitaliq.CapitalIQService
@@ -41,23 +42,18 @@ class AddressCleansingCmd:
   def fromConfigFile(config: AddressCleansingConfigDef) =
     import config.{ orgId } 
     import config.source.pipeline.{ pipelineId, outputName, dataColumn, idColumn }
-    import config.target.{ dataset as targetDatasetId }
+    import config.target.{ dataset as targetDatasetId, onFinished }
 
     measure {
       for 
-        initExec <- qtService.executePipeline(orgId, pipelineId)
-        executionId = initExec.id
-        _ = logger.info("Pipeline execution has started")
-
-        _ = logger.info("Waiting for the execution to finish...")
-        finishedExec <- waitForExecutionToFinish(orgId, pipelineId, executionId)
+        finishedExec <- executePipeline(orgId, pipelineId)
         outputId <- finishedExec.outputs.find(_.name == outputName).map(_.id) toFutureWith OutputIdNotFound
 
-        csvStr <- qtService.downloadPipelineOutput(orgId, pipelineId, executionId, outputId)
+        csvStr <- qtService.downloadPipelineOutput(orgId, pipelineId, finishedExec.id, outputId)
         _ = logger.info("Retrieved the pipeline output")
 
         sourceAddresses = CSV.dataFromColumn(csvStr, dataColumn)
-        sourceAddressesBody = sourceAddresses.drop(1)
+        sourceAddressesBody = sourceAddresses.drop(1) // dropping column name
         sourceIds = CSV.dataFromColumn(csvStr, idColumn)
 
         rows <- geocodingService.getGeocodedRows(sourceAddressesBody)
@@ -66,6 +62,8 @@ class AddressCleansingCmd:
         sheet = constructSpreadsheet(rows, sourceAddresses, sourceIds)
         _ <- qtService.uploadDataset(sheet, orgId, targetDatasetId)
         _ = logger.info("Uploaded the spreadsheet")
+
+        _ <- executeTargetTriggers(orgId, onFinished)
       yield ()
     } onComplete { 
       case Failure(e) => 
@@ -85,6 +83,16 @@ class AddressCleansingCmd:
       .prependColumns(sourceAddresses, sourceIds)
 
     Xlsx(Vector(sheetModel))
+
+  private def executePipeline(orgId: String, pipelineId: String) = 
+    for 
+      initExec <- qtService.executePipeline(orgId, pipelineId)
+      executionId = initExec.id
+      _ = logger.info("Execution for the pipeline {} has started", pipelineId)
+
+      _ = logger.info("Waiting for the {} pipeline to finish execution...", pipelineId)
+      finishedExec <- waitForExecutionToFinish(orgId, pipelineId, executionId)
+    yield finishedExec
   
   private def waitForExecutionToFinish(orgId: String, pipelineId: String, execId: String) =
     measure {
@@ -98,6 +106,22 @@ class AddressCleansingCmd:
         2.seconds
       )
     }
+
+  private def executeTargetTriggers(
+    orgId: String, 
+    maybeTriggers: Option[Target.Triggers]
+  ): Future[Unit] =
+    maybeTriggers
+      .map { 
+        _
+          .traverse {
+            case trigger: Target.Trigger.ExecutePipeline => 
+              executePipeline(orgId, trigger.pipelineId)
+          }
+          .map(_ => ())
+      }
+      .getOrElse(Future.successful(()))
+
 
 object AddressCleansingCmd:
   extension [T](op: Option[T])
