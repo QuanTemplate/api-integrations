@@ -10,7 +10,7 @@ import akka.pattern.retry
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.given
-import scala.util.{Failure, Success, Using}
+import scala.util.{Failure, Success}
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import com.google.maps.model.AddressComponentType.*
@@ -36,8 +36,8 @@ class AddressCleansingCmd:
   private given Scheduler = system.scheduler.toClassic
   private given ExecutionContext = system.executionContext
 
-  private val geocodingService = GeocodingService()
-  private val qtService = QTService(HttpService())
+  private lazy val qtService = QTService(HttpService())
+  private lazy val geocodingService = GeocodingService()
 
   def fromConfigFile(config: AddressCleansingConfigDef) =
     import config.{ orgId } 
@@ -65,7 +65,7 @@ class AddressCleansingCmd:
 
         _ <- executeTargetTriggers(orgId, onFinished)
       yield ()
-    } onComplete { 
+    }  .onComplete { 
       case Failure(e) => 
         logger.error("Failed to cleanse addresses", e)
         Runtime.getRuntime.halt(1)

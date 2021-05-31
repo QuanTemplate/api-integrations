@@ -1,73 +1,92 @@
 # api-integrations
 
-Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) leveraging the [Quantemplate API](https://quantemplate.readme.io/docs/getting-started).
+Integrations with third-party data providers such as [Capital IQ](https://www.capitaliq.com) or [Google](https://developers.google.com/maps/documentation), leveraging the [Quantemplate API](https://quantemplate.readme.io/docs/getting-started).
 
 Learn more at https://quantemplate.readme.io/
 
 If you need help please contact us at support@quantemplate.com
 
-
-# Capital IQ
-
-Capital IQ is a reservoir of financial data which could be accessed through the API and used in the Quantemplate.
-
-
 ## Running the program
 
 **Prerequisites** 
 - you need to have appropriate env variables set up, see the [dev guide](#development) for more info
-- you need to build the app first or use an already build package, see the [packaging](#packaging) for more details
+- you need to build the app first or use an already build package
+    - see the [releases](https://github.com/QuanTemplate/api-integrations/releases) to download the jar
+    - see the [packaging](#packaging) for how to build the jar from sources
+
+The integration program offers a bunch of commands, consult the `Use Cases` sections in the integrations listed below.
+
+# Integrations
+
+- # S&P Capital IQ
+
+    Capital IQ is a reservoir of financial data which could be accessed through the API and used in the Quantemplate.
 
 
-### Use-cases
 
-- [Generating a total revenue report from the Capital IQ data and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration)
+    ## Use Cases
 
-    - with yaml config:
-        ```sh
-        java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/revReport.yml
-        ```
+    - [Generating a total revenue report from the Capital IQ data and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration)
 
-        Check out the [config file](./data/revReport.yml)
+        - with yaml config:
+            ```sh
+            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/revReport.yml
+            ```
 
-
-    - with CLI args:
-        ```sh
-        cat ./data/capitaliq-identifiers.txt | java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
-        ```
-
-- [Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration-2)
-
-     - with yaml config:
-        ```sh
-        java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.2.jar apply ./data/multiPointReport.yml
-        ```
-
-        Check out the [config file](./data/multiPointReport.yml)
+            Check out the [config file](./data/revReport.yml)
 
 
-## Capital IQ request definition
+        - with CLI args:
+            ```sh
+            cat ./data/capitaliq-identifiers.txt | java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+            ```
 
-We could access different information based on the passed `Mnemonic` token.
-Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify the type of the response. Each function in different `Mnemonic` has access to different `Property Type`.
+    - [Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration-2)
 
-Each request requires a CapitalIQ identifier which must be known beforehand.
-An example set of identifiers could be found in the `./data/capitaliq-identifiers.txt`
+        - with yaml config:
+            ```sh
+            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/multiPointReport.yml
+            ```
 
-### Capital IQ functions
+            Check out the [config file](./data/multiPointReport.yml)
 
-- **GDSP** - Retrieves a single data point for a point in time
-- **GDSPV** - Retrieves an array of values for the most current availability of content either end of day or intra-day
-- **GDSG** - Retrieves a set of values that belong to a specific group using different mnemonics
-- **GDSHE** - Retrieves historical values for a mnemonic over a range of dates
-- **GDSHV** - Retrieves an array or set of values over a historical range of dates
-- **GDST** - Retrieves historical values for a mnemonic over a range of dates with a specific frequency
 
-### Available Mnemonics
+    ### Capital IQ request definition
 
-Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/capitaliq/CapitalIQ.scala)
+    We could access different information based on the passed `Mnemonic` token.
+    Each `Mnemonic` has access to at least one of `Functions`. `Function`s specify the type of the response. Each function in different `Mnemonic` has access to different `Property Type`.
 
-## Development environment setup
+    Each request requires a CapitalIQ identifier which must be known beforehand.
+    An example set of identifiers could be found in the `./data/capitaliq-identifiers.txt`
+
+    #### Capital IQ functions
+
+    - **GDSP** - Retrieves a single data point for a point in time
+    - **GDSPV** - Retrieves an array of values for the most current availability of content either end of day or intra-day
+    - **GDSG** - Retrieves a set of values that belong to a specific group using different mnemonics
+    - **GDSHE** - Retrieves historical values for a mnemonic over a range of dates
+    - **GDSHV** - Retrieves an array or set of values over a historical range of dates
+    - **GDST** - Retrieves historical values for a mnemonic over a range of dates with a specific frequency
+
+    #### Available Mnemonics
+
+    Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/capitaliq/CapitalIQ.scala)
+
+- # Google Geocoding Service
+
+    Google Geocoding API offers a way of converting human-readable addresses to geographic coordinates - latitude and longitude, and fetch additional information about given locations.
+
+
+    ## Use cases
+    - Automated pipeline execution with address cleansing
+        - with yaml config:
+            ```sh
+            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/addressCleanse.yml
+            ```
+
+# Development 
+
+## Environment setup
 
 1. Install [coursier](https://get-coursier.io/docs/cli-installation)
 
@@ -76,8 +95,7 @@ Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/qua
     ```
     cs setup
     ```
-
-## Development
+## Config
 
 1. create `api-client` user for a given env
 
@@ -85,7 +103,9 @@ Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/qua
     If you are not member of the Quantemplate team, then please reach out to us at support@quantemplate.com
 
 2. Create `.env` file in the project root with the following variables:
-
+    
+    You can omit API keys and credentials for any third-party services you won't be using.
+    
     ```
     CAPITALIQ_API_USERNAME=<api username you got with Capital IQ API license>
     CAPITALIQ_API_PASSWORD=<password for the corresponding Capital IQ API user>
