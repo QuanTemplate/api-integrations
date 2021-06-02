@@ -17,16 +17,15 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
   lazy val logger = LoggerFactory.getLogger(getClass)
   lazy val endpoints = QTEndpoints(conf.api.baseUrl)
 
-  def executePipeline(orgId: String, pipelineId: String) =
+  def executePipeline(orgId: String, pipelineId: String): Future[PipelineExecutionResponse] =
     val endpoint = endpoints.executions(orgId, pipelineId)
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
       res <- httpService.post[PipelineExecutionResponse](endpoint, HttpEntity.Empty, auth)
-
     yield res
 
-  def listExecutions(orgId: String, pipelineId: String) =
+  def listExecutions(orgId: String, pipelineId: String): Future[Vector[Execution]] =
     val endpoint = endpoints.executions(orgId, pipelineId)
 
     for
@@ -39,7 +38,7 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     pipelineId: String, 
     executionId: String, 
     outputId: String
-  ) =  
+  ): Future[String] =  
     val endpoint = endpoints.executionsOutput(orgId, pipelineId, executionId, outputId)
 
     for 
@@ -54,7 +53,7 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       case other => 
         throw UnexpectedError(other)
 
-  def uploadDataset(view: View, orgId: String, datasetId: String) =
+  def uploadDataset(view: View, orgId: String, datasetId: String): Future[Unit] =
     val endpoint = endpoints.dataset(orgId, datasetId)
 
     for
@@ -67,7 +66,7 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       case other => 
         throw UnexpectedError(other)
 
-  def downloadDataset(orgId: String, datasetId: String) =
+  def downloadDataset(orgId: String, datasetId: String): Future[String] =
     val endpoint = endpoints.dataset(orgId, datasetId)
 
     for
@@ -94,7 +93,7 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
       None
     )
 
-class QTEndpoints(baseUrl: String):
+private class QTEndpoints(baseUrl: String):
   def dataset(orgId: String, datasetId: String) = 
     s"${baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
 

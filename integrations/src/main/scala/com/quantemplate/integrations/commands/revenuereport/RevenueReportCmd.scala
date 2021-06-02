@@ -28,12 +28,12 @@ class RevenueReportCmd:
   private val identifiersLoader = IdentifierLoader(qtService)
   private val revenueReport = RevenueReport(CapitalIQService(httpService), qtService)
 
-  def fromCli(args: Array[String]) =
+  def fromCli(args: Array[String]): Unit =
     RevenueReportArgsParser.parse(args)
       .map(_.toCmdConfig(identifiersLoader.loadIdentifiersFromStdin()))
       .map(run)
 
-  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path) = 
+  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path): Unit = 
     identifiersLoader
       .loadIdentifiersFromConfig(config.identifiers, configPath, config.orgId)
       .map(_.getOrElse(identifiersLoader.loadIdentifiersFromStdin()))

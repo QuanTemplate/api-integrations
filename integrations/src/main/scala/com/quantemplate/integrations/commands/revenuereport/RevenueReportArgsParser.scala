@@ -16,7 +16,7 @@ object RevenueReportArgsParser:
     currency: String = "",
     identifiers: Option[Vector[String]] = None
   ):
-    def toCmdConfig(fallbackIds: => Vector[Identifier]) = CmdConfig(
+    def toCmdConfig(fallbackIds: => Vector[Identifier]): CmdConfig = CmdConfig(
       orgId = orgId,
       datasetId = datasetId,
       from = fromCalendar(from),
@@ -28,7 +28,8 @@ object RevenueReportArgsParser:
     private def fromCalendar(cal: Calendar) =
       cal.getTime.toInstant.atZone(ZoneId.systemDefault).toLocalDate
 
-  def parse(args: Array[String]) = OParser.parse(parser, args, CliConfig()) 
+  def parse(args: Array[String]): Option[CliConfig] = 
+    OParser.parse(parser, args, CliConfig()) 
 
   private lazy val builder = OParser.builder[CliConfig]
   private lazy val parser = 

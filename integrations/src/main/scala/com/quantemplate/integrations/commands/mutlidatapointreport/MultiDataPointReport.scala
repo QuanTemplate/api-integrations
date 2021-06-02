@@ -15,7 +15,7 @@ import com.quantemplate.integrations.qt.QTService
 class MultiDataPointReport(capitalIqService: CapitalIQService, qtService: QTService)(using ExecutionContext):
   given logger: Logger = LoggerFactory.getLogger(getClass)
 
-  def generateSpreadSheet(config: CmdConfig) =
+  def generateSpreadSheet(config: CmdConfig): Future[Unit] =
     measure {
       for  
         data <- getDataRows(config)
@@ -28,10 +28,6 @@ class MultiDataPointReport(capitalIqService: CapitalIQService, qtService: QTServ
         _ = logger.info("Uploaded the spreadsheet")
         
       yield ()
-    }.recover { case e: Throwable => 
-      println(e)
-      e.printStackTrace
-      e
     }
 
   private def constructSpreadsheet(data: View.ReportRows): View =

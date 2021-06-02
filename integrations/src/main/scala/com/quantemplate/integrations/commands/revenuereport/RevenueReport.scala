@@ -23,7 +23,7 @@ class RevenueReport(capitalIqService: CapitalIQService, qtService: QTService)(us
     currency: String,
     orgId: String,
     datasetId: String
-  ) = 
+  ): Future[Unit] = 
    measure {
       for
         names <- getNameRows(ids)

@@ -39,7 +39,7 @@ class AddressCleansingCmd:
   private lazy val qtService = QTService(HttpService())
   private lazy val geocodingService = GeocodingService()
 
-  def fromConfigFile(config: AddressCleansingConfigDef) =
+  def fromConfigFile(config: AddressCleansingConfigDef): Unit =
     import config.{ orgId } 
     import config.source.pipeline.{ pipelineId, outputName, dataColumn, idColumn }
     import config.target.{ dataset as targetDatasetId, onFinished }

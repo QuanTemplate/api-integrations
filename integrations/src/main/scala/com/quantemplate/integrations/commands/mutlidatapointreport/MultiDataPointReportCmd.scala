@@ -28,7 +28,7 @@ class MultiDataPointReportCmd:
   private val capIqService = CapitalIQService(httpService)
   private val multiDataReport = MultiDataPointReport(capIqService, qtService)
 
-  def fromConfigFile(config: MultiPointReportConfigDef, configPath: Path) =
+  def fromConfigFile(config: MultiPointReportConfigDef, configPath: Path): Unit =
     identifiersLoader
       .loadIdentifiersFromConfig(config.identifiers, configPath, config.orgId)
       .map(_.getOrElse(identifiersLoader.loadIdentifiersFromStdin()))

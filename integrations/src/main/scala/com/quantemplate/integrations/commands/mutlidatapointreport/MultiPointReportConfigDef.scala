@@ -17,7 +17,7 @@ case class MultiPointReportConfigDef(
   identifiers: Option[IdentifiersConf],
   columns: Vector[ColumnDef]
 ) extends ConfigDef:
-  def toCmdConfig(loadedIds: => Vector[Identifier]) = CmdConfig(
+  def toCmdConfig(loadedIds: => Vector[Identifier]): CmdConfig = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,
     currency = currency,

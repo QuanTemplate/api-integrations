@@ -18,7 +18,7 @@ class CapitalIQService(httpService: HttpService)(using ec: ExecutionContext, con
   def sendConcurrentRequests(
     toReq: Vector[Identifier] => Request, 
     errorStrategy: ErrorStrategy = ErrorStrategy.DiscardOnlyInvalid
-  )(ids: Vector[Identifier]) = 
+  )(ids: Vector[Identifier]): Future[Vector[Response]] = 
     val requests = ids
       .grouped(conf.mnemonicsPerRequest)
       .toVector

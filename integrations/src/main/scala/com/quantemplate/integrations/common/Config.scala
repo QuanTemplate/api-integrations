@@ -11,7 +11,7 @@ object Config:
   object CapitalIQ: 
     case class Credentials(username: String, password: String)
 
-    def load() =
+    def load(): CapitalIQ =
       val conf = ConfigFactory.load("capitaliq")
 
       CapitalIQ(
@@ -34,7 +34,7 @@ object Config:
     case class Auth(endpoint: String, clientId: String, clientSecret: String)
     case class Api(baseUrl: String)
 
-    def load() = 
+    def load(): Quantemplate = 
       val conf = ConfigFactory.load("quantemplate")
 
        Quantemplate(
@@ -50,7 +50,7 @@ object Config:
 
   case class GoogleMaps(apiKey: String)
   object GoogleMaps:
-    def load() = 
+    def load(): GoogleMaps = 
       val conf = ConfigFactory.load("google-maps")
     
       GoogleMaps(

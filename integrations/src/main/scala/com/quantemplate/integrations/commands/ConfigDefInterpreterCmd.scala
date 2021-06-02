@@ -18,7 +18,7 @@ import com.quantemplate.integrations.commands.addresscleansing.*
 object ConfigDefInterpreterCmd:
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  def fromCli(args: Array[String]) = ConfigArgsParser.parse(args).map { cliConfig =>
+  def fromCli(args: Array[String]): Unit = ConfigArgsParser.parse(args).map { cliConfig =>
     val configPath = IO.absolutePath(cliConfig.path)
 
     loadConfig(configPath).bimap(

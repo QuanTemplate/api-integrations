@@ -4,7 +4,7 @@ import java.nio.file.Path
 import org.slf4j.LoggerFactory
 import io.circe.Decoder
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import io.circe.syntax.given
 import cats.syntax.apply.given
 import cats.syntax.traverse.given
@@ -18,7 +18,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
 
   private lazy val logger = LoggerFactory.getLogger(getClass)
 
-  def loadIdentifiersFromStdin() =
+  def loadIdentifiersFromStdin(): Vector[CapitalIQ.Identifier] =
     logger.info("Loading the Capital IQ identifiers from the STDIN")
 
     IO.stdin(_.getLines.toVector) match
@@ -31,7 +31,7 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
     config: Option[IdentifiersConf], 
     configPath: Path, 
     orgId: String
-  ) =
+  ): Future[Option[Vector[CapitalIQ.Identifier]]] =
     config
       .flatMap(_.dataset)
       .map(loadIdentifiersFromDataset(orgId))

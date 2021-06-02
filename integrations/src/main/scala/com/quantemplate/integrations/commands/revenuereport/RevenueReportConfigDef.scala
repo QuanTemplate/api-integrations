@@ -17,7 +17,7 @@ case class RevenueReportConfigDef(
   to: LocalDate,
   identifiers: Option[IdentifiersConf]
 ) extends ConfigDef:
-  def toCmdConfig(loadedIds: => Vector[Identifier]) = CmdConfig(
+  def toCmdConfig(loadedIds: => Vector[Identifier]): CmdConfig = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,
     from = from,

@@ -19,9 +19,9 @@ class GeocodingService()(using conf: Config.GoogleMaps):
     .apiKey(conf.apiKey)
     .build()
 
-
-  def getGeocodedRows(addresses: Vector[String])(using ExecutionContext) =
-    println("getGeocodedRows")
+  def getGeocodedRows(
+    addresses: Vector[String]
+  )(using ExecutionContext): Future[View.ReportRows] =
     addresses
       .map(geocode)
       .sequence
@@ -69,12 +69,9 @@ class GeocodingService()(using conf: Config.GoogleMaps):
     headerRow +: dataRows
 
   private def findAddressComponent(result: GeocodingResult)(column: AddressComponentType) = 
-    result.addressComponents.find {
-      case c if c.types.exists(_ == column) => true 
-      case otherwise => false
-    }
-    .map(_.longName)
-
+    result.addressComponents
+      .find(_.types.exists(_ == column))
+      .map(_.longName)
 
 object GeocodingService:
   import com.google.maps.model.AddressComponentType.*
