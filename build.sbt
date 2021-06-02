@@ -2,7 +2,7 @@ name := "api-integrations"
 
 ThisBuild / organization := "com.quantemplate"
 ThisBuild / scalaVersion := "3.0.0-RC2"
-ThisBuild / version := "0.1.2"
+ThisBuild / version := "0.1.3"
 
 val AkkaVersion = "2.6.12"
 val AkkaHttpVersion = "10.2.4"
@@ -10,12 +10,11 @@ val CirceVersion = "0.14.0-M3"
 
 lazy val root = (project in file("."))
   .aggregate(
-    capitaliq
+    integrations
   )
 
-lazy val capitaliq = (project in file("capitaliq"))
+lazy val integrations = (project in file("integrations"))
   .settings(
-    name := "capitaliq",
     libraryDependencies ++= Seq(
       // akka
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
@@ -36,6 +35,7 @@ lazy val capitaliq = (project in file("capitaliq"))
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe" % "config" % "1.4.1",
+      "com.google.maps" % "google-maps-services" % "0.18.0",
       "org.mockito" % "mockito-core" % "3.9.0" % Test
     ),
 
@@ -44,7 +44,7 @@ lazy val capitaliq = (project in file("capitaliq"))
       "org.scalameta" %% "munit" % "0.7.23" % Test
     ),
 
-    assembly / mainClass := Some("com.quantemplate.capitaliq.Main"),
+    assembly / mainClass := Some("com.quantemplate.integrations.Main"),
     assembly / assemblyJarName := s"qt-integrations-${version.value}.jar"
   )
 

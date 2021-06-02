@@ -1,0 +1,16 @@
+command: cleanseAddresses
+params: 
+  orgId: c-demo-sov-rms-hvv 
+  source:
+    pipeline: 
+      pipelineId: p-yaukd2w2lvdv6r-mmmrnlteg
+      outputName: "Addresses for Geocoding: Location Import: RMS"
+      dataColumn: LOCNAME
+      idColumn: LOCNUM
+
+  target:
+    dataset: d-pkusqtimlrbnsrdlt-ho4ud2
+    onFinished:
+      - action: ExecutePipeline
+        pipelineId: p-r-o2ymaypvhyhtol6j62plsi
+    

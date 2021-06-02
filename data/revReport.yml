@@ -12,7 +12,7 @@ params:
     dataset:                                #  - remote Quantemplate `dataset` (Ids will be taken from `columnName` column)
       datasetId: d-vvgqdpct2jh3ys3c4iuncyjh 
       columnName: Company ID                                                   
-    # local: ./capitaliq-identifiers.txt    #  - `local` .txt file,  (relative file path will be resolved against the config file)
+    # local: /capitaliq-identifiers.txt    #  - `local` .txt file,  (relative file path will be resolved against the config file)
     # inline:                               #  - defined `inline` in the config file
     #   - IQ121238                          # Multiple sources of identifiers will be merged together
     #   - IQ121238
