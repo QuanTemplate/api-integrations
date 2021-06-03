@@ -8,18 +8,9 @@ case class AddressCleansingConfigDef(
   orgId: String,
   source: Source,
   target: Target
-) extends ConfigDef
+) extends ConfigDef derives Decoder
 
-object AddressCleansingConfigDef:
-  given Decoder[AddressCleansingConfigDef] = Decoder { c => 
-    (
-      c.get[String]("orgId"),
-      c.get[Source]("source"),
-      c.get[Target]("target")
-    ).mapN(AddressCleansingConfigDef.apply)
-  }
-
-case class Source(pipeline: Source.PipelineSource)
+case class Source(pipeline: Source.PipelineSource) derives Decoder
 object Source: 
  
 
@@ -28,24 +19,12 @@ object Source:
     outputName: String, 
     dataColumn: Option[String],
     idColumn: Option[String]
-  )
-  object PipelineSource:
-    given Decoder[PipelineSource] = Decoder { c => 
-      (
-        c.get[String]("pipelineId"),
-        c.get[String]("outputName"),
-        c.get[Option[String]]("dataColumn"),
-        c.get[Option[String]]("idColumn")
-      ).mapN(PipelineSource.apply)
-    }
-
-  given Decoder[Source] = Decoder(_.get[PipelineSource]("pipeline").map(Source(_)))
-
+  ) derives Decoder
 
 case class Target(
   dataset: String,
   onFinished: Option[Target.Triggers]
-)
+) derives Decoder
 
 object Target:
   type Triggers = Vector[Target.Trigger]
@@ -59,12 +38,4 @@ object Target:
         c.get[String]("pipelineId").map(Trigger.ExecutePipeline(_))
     }
   }
-  
-  given Decoder[Target] = Decoder { c => 
-    (
-      c.get[String]("dataset"),
-      c.get[Option[Vector[Trigger]]]("onFinished")
-    ).mapN(Target.apply)
-  }
-
   

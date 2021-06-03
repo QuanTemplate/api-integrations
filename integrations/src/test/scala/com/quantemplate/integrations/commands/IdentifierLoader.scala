@@ -104,7 +104,7 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
 
     val config = IdentifiersConf(
       inline = ids.some,
-      distinct = true
+      distinct = true.some
     )
 
     for

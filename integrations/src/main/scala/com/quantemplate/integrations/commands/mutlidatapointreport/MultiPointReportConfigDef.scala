@@ -16,7 +16,7 @@ case class MultiPointReportConfigDef(
   date: LocalDate, 
   identifiers: Option[IdentifiersConf],
   columns: Vector[ColumnDef]
-) extends ConfigDef:
+) extends ConfigDef derives Decoder:
   def toCmdConfig(loadedIds: => Vector[Identifier]): CmdConfig = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,
@@ -25,18 +25,6 @@ case class MultiPointReportConfigDef(
     identifiers = loadedIds,
     columns = columns
   )
-
-object MultiPointReportConfigDef:
-  given Decoder[MultiPointReportConfigDef] = Decoder { c => 
-    (
-      c.get[String]("orgId"),
-      c.get[String]("datasetId"),
-      c.get[String]("currency"),
-      c.get[LocalDate]("date"),
-      c.get[Option[IdentifiersConf]]("identifiers"),
-      c.get[Vector[ColumnDef]]("columns")
-    ).mapN(MultiPointReportConfigDef.apply)
-  }
 
 case class ColumnDef(mnemonicId: String, header: String)
 object ColumnDef:

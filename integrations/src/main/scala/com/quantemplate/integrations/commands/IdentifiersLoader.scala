@@ -44,7 +44,9 @@ class IdentifierLoader(qtService: QTService)(using ExecutionContext):
 
         val allIds = (inlineIds ++ localIds ++ remoteIds).reduceOption(_ ++ _)
 
-        val maybeDistinctIds = config.filter(_.distinct)
+        val maybeDistinctIds = config
+          .flatMap(_.distinct)
+          .filter(identity)
           .flatMap(_ => allIds.map(_.distinct))
           .orElse(allIds)
 
@@ -92,22 +94,9 @@ object IdentifierLoader:
     local: Option[LocalSource] = None,
     dataset: Option[DatasetSource] = None,
     inline: Option[InlineSource] = None,
-    distinct: Boolean = true,
+    distinct: Option[Boolean] = None,
     limit: Option[Int] = None
-  )
-  object IdentifiersConf:
-    given Decoder[IdentifiersConf] = Decoder { c => 
-      (
-        c.get[Option[LocalSource]]("local"),
-        c.get[Option[DatasetSource]]("dataset"),
-        c.get[Option[InlineSource]]("inline"),
-        c.get[Option[Boolean]]("distinct").map {
-          case Some(false) => false
-          case _ => true
-        },
-        c.get[Option[Int]]("limit")
-      ).mapN(IdentifiersConf.apply)
-    }
+  ) derives Decoder
 
   type LocalSource = String
   type InlineSource = Vector[CapitalIQ.Identifier]
