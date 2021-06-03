@@ -62,8 +62,7 @@ object CapitalIQ:
     def name: String
   object Mnemonic:
     // If this is going to be maintained in a long term, the boilerplate needs to be reduced, mainly by:
-    //  - updating to Scala 3 version circe and use native derive mechanism 
-    //    first `circle-yml` needs to be available for Scala 3
+    //  - switching to Scala 3 `derives` mechanism and somehow configuring the ADT discriminant: https://github.com/circe/circe/issues/1777
     //  - describing shared props with generic tuples 
     //    https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html
     //    beware that some of the mnemonic properties could include subtle differences (!)
@@ -104,7 +103,7 @@ object CapitalIQ:
               "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
               "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-              "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "filingMode" ->  fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
               "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
               "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
             )
@@ -114,7 +113,7 @@ object CapitalIQ:
               "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
               "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
               "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-              "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+              "filingMode" ->  fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
               "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
               "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
               "metaDataTag" -> fn.metaDataTag.map(Json.fromString).getOrElse(Json.Null),
@@ -1463,9 +1462,7 @@ object CapitalIQ:
 
   end Mnemonic
 
-  case class Request(inputRequests: Vector[Mnemonic])
-  object Request:
-    given Encoder[Request] = Encoder.forProduct1("inputRequests")(_.inputRequests)
+  case class Request(inputRequests: Vector[Mnemonic]) derives Encoder.AsObject
 
   case class RawResponse(responses: Vector[RawResponse.MnemonicResponse])
   object RawResponse:
