@@ -61,3 +61,6 @@ lazy val integrations = (project in file("integrations"))
   )
 
 Compile / run / fork := true
+
+ThisBuild / githubWorkflowGeneratedUploadSteps := Seq.empty
+ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
