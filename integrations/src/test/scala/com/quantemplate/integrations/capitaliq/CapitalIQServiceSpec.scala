@@ -29,10 +29,10 @@ class CapitalIQServiceSpec extends ActorSystemSuite:
     when(
       mockHttpService.post[Request, RawResponse](any(), any(), any())(any(), any())
     ).thenReturn(Future.successful(rawResponse))
-    
+
     val service = CapitalIQService(mockHttpService)
 
-    for 
+    for
       result <- service.sendRequest(Request(Vector(mnemonic)))
       _ = assertEquals(result, Vector(Response(mnemonic, rows)))
     yield ()

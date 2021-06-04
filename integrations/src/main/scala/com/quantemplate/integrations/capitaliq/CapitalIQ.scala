@@ -1,13 +1,12 @@
 package com.quantemplate.integrations.capitaliq
 
-import io.circe.{ Encoder, Decoder, Json }
+import io.circe.{Encoder, Decoder, Json}
 import io.circe.syntax.given
 import cats.syntax.traverse.given
 import cats.syntax.applicative.given
 
-/**
- *  CapitalIQ exposes.capitaliq models, which are direct, type-safe mapping of Capital IQ API
- */
+/** CapitalIQ exposes.capitaliq models, which are direct, type-safe mapping of Capital IQ API
+  */
 object CapitalIQ:
   opaque type Identifier = String
   object Identifier:
@@ -22,12 +21,12 @@ object CapitalIQ:
       .ensure(isValid, "Not a valid CapitalIQ identifier")
       .map(Identifier(_))
 
-  extension (i: Identifier)
-    def unwrap: String = i
+  extension (i: Identifier) def unwrap: String = i
 
   object Properties:
     opaque type RelativePeriod = String
     object RelativePeriod:
+      // format: off
       type Base = 
         "IQ_CH"    | // Calendar half
         "IQ_CQ"    | // Calendar quarter
@@ -39,6 +38,7 @@ object CapitalIQ:
         "IQ_NTM"   | // Next 12 months
         "IQ_MONTH" | // Last completed month
         "IQ_YTD"     // Year-to-Date
+      // format: on
       def apply(str: Base): RelativePeriod = str
 
     extension (period: RelativePeriod.Base)
@@ -47,8 +47,7 @@ object CapitalIQ:
       def forward(n: Int): MarkedPeriod = s"${period}+${n}"
 
     opaque type MarkedPeriod = String
-    extension (i: MarkedPeriod)
-      def unwrap: String = i
+    extension (i: MarkedPeriod) def unwrap: String = i
 
     type MetaDataTag = "FiscalYear" | "AsOfDate"
     type FilingMode = "P" | "F"
@@ -57,13 +56,12 @@ object CapitalIQ:
 
   import Properties.*
 
-
   sealed trait Mnemonic:
     def name: String
   object Mnemonic:
     // If this is going to be maintained in a long term, the boilerplate needs to be reduced, mainly by:
     //  - switching to Scala 3 `derives` mechanism and somehow configuring the ADT discriminant: https://github.com/circe/circe/issues/1777
-    //  - describing shared props with generic tuples 
+    //  - describing shared props with generic tuples
     //    https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html
     //    beware that some of the mnemonic properties could include subtle differences (!)
     //    before any sudden refactor consult the api docs: https://support.standardandpoors.com/gds/ first
@@ -76,57 +74,64 @@ object CapitalIQ:
     object IQ_TOTAL_REV:
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
 
         case GDSHE(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          metaDataTag: Option[MetaDataTag] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            metaDataTag: Option[MetaDataTag] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
 
       given Encoder[Fn] = Encoder {
-          case fn: Fn.GDSP => 
-            Json.obj(
-              "currencyId" -> Json.fromString(fn.currencyId),
-              "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-              "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-              "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-              "filingMode" ->  fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
-              "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-              "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-            )
-          case fn: Fn.GDSHE =>
-            Json.obj(
-              "currencyId" -> Json.fromString(fn.currencyId),
-              "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-              "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-              "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-              "filingMode" ->  fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
-              "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-              "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-              "metaDataTag" -> fn.metaDataTag.map(Json.fromString).getOrElse(Json.Null),
-            )
-        }
+        case fn: Fn.GDSP =>
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId
+              .map(Json.fromString)
+              .getOrElse(Json.Null)
+          )
+        case fn: Fn.GDSHE =>
+          Json.obj(
+            "currencyId" -> Json.fromString(fn.currencyId),
+            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+            "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+            "currencyConversionModeId" -> fn.currencyConversionModeId
+              .map(Json.fromString)
+              .getOrElse(Json.Null),
+            "metaDataTag" -> fn.metaDataTag.map(Json.fromString).getOrElse(Json.Null)
+          )
+      }
 
-      given Encoder[IQ_TOTAL_REV] = 
+      given Encoder[IQ_TOTAL_REV] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSHE => "GDSHE" case _: Fn.GDSP  => "GDSP" },
+            m.properties match {
+              case _: Fn.GDSHE => "GDSHE"
+              case _: Fn.GDSP  => "GDSP"
+            },
             m.identifier.unwrap,
             "IQ_TOTAL_REV",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_REV
@@ -138,52 +143,49 @@ object CapitalIQ:
       // also supports GDST and GDSHE
       enum Fn:
         case GDSP(
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TEV_TOTAL_REV] = 
-        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
+      given Encoder[IQ_TEV_TOTAL_REV] =
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" }, 
-            m.identifier.unwrap, 
-            "IQ_TEV_TOTAL_REV" 
+            m.properties match { case _: Fn.GDSP => "GDSP" },
+            m.identifier.unwrap,
+            "IQ_TEV_TOTAL_REV"
           )
         }
     end IQ_TEV_TOTAL_REV
 
-
-
     case class IQ_COMPANY_NAME_LONG(identifier: Identifier) extends Mnemonic:
       def name = productPrefix
     object IQ_COMPANY_NAME_LONG:
-      given Encoder[IQ_COMPANY_NAME_LONG] = 
-        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
-          ( "GDSP", m.identifier.unwrap, "IQ_COMPANY_NAME_LONG" )
+      given Encoder[IQ_COMPANY_NAME_LONG] =
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m =>
+          ("GDSP", m.identifier.unwrap, "IQ_COMPANY_NAME_LONG")
         }
 
     case class IQ_ULT_PARENT(identifier: Identifier) extends Mnemonic:
       def name = productPrefix
     object IQ_ULT_PARENT:
-      given Encoder[IQ_ULT_PARENT] = 
-        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
-          ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT" )
+      given Encoder[IQ_ULT_PARENT] =
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m =>
+          ("GDSP", m.identifier.unwrap, "IQ_ULT_PARENT")
         }
 
     case class IQ_ULT_PARENT_CIQID(identifier: Identifier) extends Mnemonic:
       def name = productPrefix
     object IQ_ULT_PARENT_CIQID:
-      given Encoder[IQ_ULT_PARENT_CIQID] = 
-        Encoder.forProduct3("function", "identifier", "mnemonic") { m => 
-          ( "GDSP", m.identifier.unwrap, "IQ_ULT_PARENT_CIQID" )
+      given Encoder[IQ_ULT_PARENT_CIQID] =
+        Encoder.forProduct3("function", "identifier", "mnemonic") { m =>
+          ("GDSP", m.identifier.unwrap, "IQ_ULT_PARENT_CIQID")
         }
 
     case class IQ_COMPANY_ID(properties: IQ_COMPANY_ID.Fn, identifier: Identifier) extends Mnemonic:
@@ -192,16 +194,15 @@ object CapitalIQ:
       enum Fn:
         case GDSP(startDate: Option[String] = None)
 
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "startDate" -> fn.startDate.map(Json.fromString).getOrElse(Json.Null)
-          )
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "startDate" -> fn.startDate.map(Json.fromString).getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_COMPANY_ID] = 
-        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m => 
-          ("GDSP", m.identifier.unwrap, "IQ_COMPANY_ID", m.properties )
+      given Encoder[IQ_COMPANY_ID] =
+        Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
+          ("GDSP", m.identifier.unwrap, "IQ_COMPANY_ID", m.properties)
         }
     end IQ_COMPANY_ID
 
@@ -211,27 +212,28 @@ object CapitalIQ:
       // also supports GDST and GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          asOfDate: Option[String] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            asOfDate: Option[String] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
 
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_MARKETCAP] = 
+      given Encoder[IQ_MARKETCAP] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_MARKETCAP",
-            m.properties 
+            m.properties
           )
         }
     end IQ_MARKETCAP
@@ -243,35 +245,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NI] = 
+      given Encoder[IQ_NI] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NI",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NI
@@ -282,35 +285,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TOTAL_EMPLOYEES] = 
+      given Encoder[IQ_TOTAL_EMPLOYEES] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_EMPLOYEES",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_EMPLOYEES
@@ -318,38 +322,39 @@ object CapitalIQ:
     case class IQ_EBIT(properties: IQ_EBIT.Fn, identifier: Identifier) extends Mnemonic:
       def name = productPrefix
     object IQ_EBIT:
-        // also supports GDSHE
+      // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP =>
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBIT] = 
+      given Encoder[IQ_EBIT] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBIT",
-            m.properties 
+            m.properties
           )
         }
 
@@ -361,25 +366,24 @@ object CapitalIQ:
       // also supports GDST and GDSHE
       enum Fn:
         case GDSP(
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TEV_EBIT] = 
+      given Encoder[IQ_TEV_EBIT] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TEV_EBIT",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TEV_EBIT
@@ -391,35 +395,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBITDA] = 
+      given Encoder[IQ_EBITDA] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBITDA",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBITDA
@@ -430,25 +435,24 @@ object CapitalIQ:
       // also supports GDST and GDSHE
       enum Fn:
         case GDSP(
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TEV_EBITDA] = 
+      given Encoder[IQ_TEV_EBITDA] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TEV_EBITDA",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TEV_EBITDA
@@ -459,35 +463,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_DILUT_EPS_EXCL] = 
+      given Encoder[IQ_DILUT_EPS_EXCL] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_DILUT_EPS_EXCL",
-            m.properties 
+            m.properties
           )
         }
     end IQ_DILUT_EPS_EXCL
@@ -498,103 +503,110 @@ object CapitalIQ:
       // also supports GDST and GDSHE
       enum Fn:
         case GDSP(
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_PE_EXCL] = 
+      given Encoder[IQ_PE_EXCL] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_PE_EXCL",
-            m.properties 
+            m.properties
           )
         }
     end IQ_PE_EXCL
 
-    case class IQ_TOTAL_REV_1YR_ANN_GROWTH(properties: IQ_TOTAL_REV_1YR_ANN_GROWTH.Fn, identifier: Identifier) extends Mnemonic:
+    case class IQ_TOTAL_REV_1YR_ANN_GROWTH(
+        properties: IQ_TOTAL_REV_1YR_ANN_GROWTH.Fn,
+        identifier: Identifier
+    ) extends Mnemonic:
       def name = productPrefix
     object IQ_TOTAL_REV_1YR_ANN_GROWTH:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TOTAL_REV_1YR_ANN_GROWTH] = 
+      given Encoder[IQ_TOTAL_REV_1YR_ANN_GROWTH] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_REV_1YR_ANN_GROWTH",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_REV_1YR_ANN_GROWTH
 
-    case class IQ_EBITDA_1YR_ANN_GROWTH(properties: IQ_EBITDA_1YR_ANN_GROWTH.Fn, identifier: Identifier) extends Mnemonic:
+    case class IQ_EBITDA_1YR_ANN_GROWTH(
+        properties: IQ_EBITDA_1YR_ANN_GROWTH.Fn,
+        identifier: Identifier
+    ) extends Mnemonic:
       def name = productPrefix
     object IQ_EBITDA_1YR_ANN_GROWTH:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBITDA_1YR_ANN_GROWTH] = 
+      given Encoder[IQ_EBITDA_1YR_ANN_GROWTH] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBITDA_1YR_ANN_GROWTH",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBITDA_1YR_ANN_GROWTH
@@ -605,35 +617,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBIT_1YR_ANN_GROWTH] = 
+      given Encoder[IQ_EBIT_1YR_ANN_GROWTH] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBIT_1YR_ANN_GROWTH",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBIT_1YR_ANN_GROWTH
@@ -644,35 +657,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NI_1YR_ANN_GROWTH] = 
+      given Encoder[IQ_NI_1YR_ANN_GROWTH] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NI_1YR_ANN_GROWTH",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NI_1YR_ANN_GROWTH
@@ -683,35 +697,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EPS_1YR_ANN_GROWTH] = 
+      given Encoder[IQ_EPS_1YR_ANN_GROWTH] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EPS_1YR_ANN_GROWTH",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EPS_1YR_ANN_GROWTH
@@ -722,35 +737,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TOTAL_ASSETS] = 
+      given Encoder[IQ_TOTAL_ASSETS] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_ASSETS",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_ASSETS
@@ -761,35 +777,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_RETURN_ASSETS] = 
+      given Encoder[IQ_RETURN_ASSETS] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_RETURN_ASSETS",
-            m.properties 
+            m.properties
           )
         }
     end IQ_RETURN_ASSETS
@@ -800,35 +817,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_RETURN_CAPITAL] = 
+      given Encoder[IQ_RETURN_CAPITAL] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_RETURN_CAPITAL",
-            m.properties 
+            m.properties
           )
         }
     end IQ_RETURN_CAPITAL
@@ -839,74 +857,79 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_RETURN_EQUITY] = 
+      given Encoder[IQ_RETURN_EQUITY] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_RETURN_EQUITY",
-            m.properties 
+            m.properties
           )
         }
     end IQ_RETURN_EQUITY
 
-    case class IQ_RETURN_COMMON_EQUITY(properties: IQ_RETURN_COMMON_EQUITY.Fn, identifier: Identifier) extends Mnemonic:
+    case class IQ_RETURN_COMMON_EQUITY(
+        properties: IQ_RETURN_COMMON_EQUITY.Fn,
+        identifier: Identifier
+    ) extends Mnemonic:
       def name = productPrefix
     object IQ_RETURN_COMMON_EQUITY:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_RETURN_COMMON_EQUITY] = 
+      given Encoder[IQ_RETURN_COMMON_EQUITY] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_RETURN_COMMON_EQUITY",
-            m.properties 
+            m.properties
           )
         }
     end IQ_RETURN_COMMON_EQUITY
@@ -917,35 +940,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_GROSS_MARGIN] = 
+      given Encoder[IQ_GROSS_MARGIN] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_GROSS_MARGIN",
-            m.properties 
+            m.properties
           )
         }
     end IQ_GROSS_MARGIN
@@ -956,35 +980,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBITDA_MARGIN] = 
+      given Encoder[IQ_EBITDA_MARGIN] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBITDA_MARGIN",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBITDA_MARGIN
@@ -995,35 +1020,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBIT_MARGIN] = 
+      given Encoder[IQ_EBIT_MARGIN] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBIT_MARGIN",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBIT_MARGIN
@@ -1034,35 +1060,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NI_MARGIN] = 
+      given Encoder[IQ_NI_MARGIN] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NI_MARGIN",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NI_MARGIN
@@ -1073,35 +1100,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_CAPEX_PCT_REV] = 
+      given Encoder[IQ_CAPEX_PCT_REV] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_CAPEX_PCT_REV",
-            m.properties 
+            m.properties
           )
         }
     end IQ_CAPEX_PCT_REV
@@ -1112,35 +1140,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TOTAL_DEBT_EBITDA] = 
+      given Encoder[IQ_TOTAL_DEBT_EBITDA] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_DEBT_EBITDA",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_DEBT_EBITDA
@@ -1151,35 +1180,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_TOTAL_DEBT_EQUITY] = 
+      given Encoder[IQ_TOTAL_DEBT_EQUITY] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_TOTAL_DEBT_EQUITY",
-            m.properties 
+            m.properties
           )
         }
     end IQ_TOTAL_DEBT_EQUITY
@@ -1190,74 +1220,79 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NET_DEBT_EBITDA] = 
+      given Encoder[IQ_NET_DEBT_EBITDA] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NET_DEBT_EBITDA",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NET_DEBT_EBITDA
 
-    case class IQ_NET_DEBT_EBITDA_CAPEX(properties: IQ_NET_DEBT_EBITDA_CAPEX.Fn, identifier: Identifier) extends Mnemonic:
+    case class IQ_NET_DEBT_EBITDA_CAPEX(
+        properties: IQ_NET_DEBT_EBITDA_CAPEX.Fn,
+        identifier: Identifier
+    ) extends Mnemonic:
       def name = productPrefix
     object IQ_NET_DEBT_EBITDA_CAPEX:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NET_DEBT_EBITDA_CAPEX] = 
+      given Encoder[IQ_NET_DEBT_EBITDA_CAPEX] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NET_DEBT_EBITDA_CAPEX",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NET_DEBT_EBITDA_CAPEX
@@ -1268,35 +1303,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_CASH_INTEREST] = 
+      given Encoder[IQ_CASH_INTEREST] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_CASH_INTEREST",
-            m.properties 
+            m.properties
           )
         }
     end IQ_CASH_INTEREST
@@ -1307,35 +1343,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NET_DEBT] = 
+      given Encoder[IQ_NET_DEBT] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NET_DEBT",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NET_DEBT
@@ -1346,35 +1383,36 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_NET_INTEREST_EXP] = 
+      given Encoder[IQ_NET_INTEREST_EXP] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_NET_INTEREST_EXP",
-            m.properties 
+            m.properties
           )
         }
     end IQ_NET_INTEREST_EXP
@@ -1385,79 +1423,80 @@ object CapitalIQ:
       // also supports GDSHE
       enum Fn:
         case GDSP(
-          currencyId: String,
-          periodType: Option[MarkedPeriod] = None,
-          asOfDate: Option[String] = None,
-          restatementTypeId: Option[String] = None,
-          filingMode: Option[FilingMode] = None,
-          consolidatedFlag: Option[ConsolidatedFlag] = None,
-          currencyConversionModeId: Option[CurrencyConversionModeId] = None
+            currencyId: String,
+            periodType: Option[MarkedPeriod] = None,
+            asOfDate: Option[String] = None,
+            restatementTypeId: Option[String] = None,
+            filingMode: Option[FilingMode] = None,
+            consolidatedFlag: Option[ConsolidatedFlag] = None,
+            currencyConversionModeId: Option[CurrencyConversionModeId] = None
         )
-      
-      given Encoder[Fn] = Encoder {
-        case fn: Fn.GDSP => 
-          Json.obj(
-            "currencyId" -> Json.fromString(fn.currencyId),
-            "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
-            "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
-            "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "filingMode" ->  fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
-            "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
-            "currencyConversionModeId" -> fn.currencyConversionModeId.map(Json.fromString).getOrElse(Json.Null),
-          )
+
+      given Encoder[Fn] = Encoder { case fn: Fn.GDSP =>
+        Json.obj(
+          "currencyId" -> Json.fromString(fn.currencyId),
+          "periodType" -> fn.periodType.map(_.unwrap).map(Json.fromString).getOrElse(Json.Null),
+          "asOfDate" -> fn.asOfDate.map(Json.fromString).getOrElse(Json.Null),
+          "restatementTypeId" -> fn.restatementTypeId.map(Json.fromString).getOrElse(Json.Null),
+          "filingMode" -> fn.filingMode.map(Json.fromString).getOrElse(Json.Null),
+          "consolidatedFlag" -> fn.consolidatedFlag.map(Json.fromString).getOrElse(Json.Null),
+          "currencyConversionModeId" -> fn.currencyConversionModeId
+            .map(Json.fromString)
+            .getOrElse(Json.Null)
+        )
       }
 
-      given Encoder[IQ_EBITDA_CAPEX] = 
+      given Encoder[IQ_EBITDA_CAPEX] =
         Encoder.forProduct4("function", "identifier", "mnemonic", "properties") { m =>
           (
-            m.properties match { case _: Fn.GDSP  => "GDSP" },
+            m.properties match { case _: Fn.GDSP => "GDSP" },
             m.identifier.unwrap,
             "IQ_EBITDA_CAPEX",
-            m.properties 
+            m.properties
           )
         }
     end IQ_EBITDA_CAPEX
 
     // there is a StackOverflowError after using just a single `(_.asJson)`
     given Encoder[Mnemonic] = Encoder.instance[Mnemonic] {
-      case m: IQ_TOTAL_REV => m.asJson
-      case m: IQ_TEV_TOTAL_REV => m.asJson
-      case m: IQ_COMPANY_NAME_LONG => m.asJson
-      case m: IQ_COMPANY_ID => m.asJson
-      case m: IQ_ULT_PARENT => m.asJson
-      case m: IQ_ULT_PARENT_CIQID => m.asJson
-      case m: IQ_MARKETCAP => m.asJson
-      case m: IQ_NI => m.asJson
-      case m: IQ_TOTAL_EMPLOYEES => m.asJson
-      case m: IQ_EBIT => m.asJson
-      case m: IQ_TEV_EBIT => m.asJson
-      case m: IQ_EBITDA => m.asJson
-      case m: IQ_TEV_EBITDA => m.asJson
-      case m: IQ_DILUT_EPS_EXCL => m.asJson
-      case m: IQ_PE_EXCL => m.asJson
+      case m: IQ_TOTAL_REV                => m.asJson
+      case m: IQ_TEV_TOTAL_REV            => m.asJson
+      case m: IQ_COMPANY_NAME_LONG        => m.asJson
+      case m: IQ_COMPANY_ID               => m.asJson
+      case m: IQ_ULT_PARENT               => m.asJson
+      case m: IQ_ULT_PARENT_CIQID         => m.asJson
+      case m: IQ_MARKETCAP                => m.asJson
+      case m: IQ_NI                       => m.asJson
+      case m: IQ_TOTAL_EMPLOYEES          => m.asJson
+      case m: IQ_EBIT                     => m.asJson
+      case m: IQ_TEV_EBIT                 => m.asJson
+      case m: IQ_EBITDA                   => m.asJson
+      case m: IQ_TEV_EBITDA               => m.asJson
+      case m: IQ_DILUT_EPS_EXCL           => m.asJson
+      case m: IQ_PE_EXCL                  => m.asJson
       case m: IQ_TOTAL_REV_1YR_ANN_GROWTH => m.asJson
-      case m: IQ_EBITDA_1YR_ANN_GROWTH => m.asJson
-      case m: IQ_EBIT_1YR_ANN_GROWTH => m.asJson
-      case m: IQ_NI_1YR_ANN_GROWTH => m.asJson
-      case m: IQ_EPS_1YR_ANN_GROWTH => m.asJson
-      case m: IQ_TOTAL_ASSETS => m.asJson
-      case m: IQ_RETURN_ASSETS => m.asJson
-      case m: IQ_RETURN_CAPITAL => m.asJson
-      case m: IQ_RETURN_EQUITY => m.asJson
-      case m: IQ_RETURN_COMMON_EQUITY => m.asJson
-      case m: IQ_GROSS_MARGIN => m.asJson
-      case m: IQ_EBITDA_MARGIN => m.asJson
-      case m: IQ_EBIT_MARGIN => m.asJson
-      case m: IQ_NI_MARGIN => m.asJson
-      case m: IQ_CAPEX_PCT_REV => m.asJson
-      case m: IQ_TOTAL_DEBT_EBITDA => m.asJson
-      case m: IQ_TOTAL_DEBT_EQUITY => m.asJson 
-      case m: IQ_NET_DEBT_EBITDA => m.asJson
-      case m: IQ_NET_DEBT_EBITDA_CAPEX => m.asJson
-      case m: IQ_CASH_INTEREST => m.asJson
-      case m: IQ_NET_DEBT => m.asJson
-      case m: IQ_NET_INTEREST_EXP => m.asJson
-      case m: IQ_EBITDA_CAPEX => m.asJson
+      case m: IQ_EBITDA_1YR_ANN_GROWTH    => m.asJson
+      case m: IQ_EBIT_1YR_ANN_GROWTH      => m.asJson
+      case m: IQ_NI_1YR_ANN_GROWTH        => m.asJson
+      case m: IQ_EPS_1YR_ANN_GROWTH       => m.asJson
+      case m: IQ_TOTAL_ASSETS             => m.asJson
+      case m: IQ_RETURN_ASSETS            => m.asJson
+      case m: IQ_RETURN_CAPITAL           => m.asJson
+      case m: IQ_RETURN_EQUITY            => m.asJson
+      case m: IQ_RETURN_COMMON_EQUITY     => m.asJson
+      case m: IQ_GROSS_MARGIN             => m.asJson
+      case m: IQ_EBITDA_MARGIN            => m.asJson
+      case m: IQ_EBIT_MARGIN              => m.asJson
+      case m: IQ_NI_MARGIN                => m.asJson
+      case m: IQ_CAPEX_PCT_REV            => m.asJson
+      case m: IQ_TOTAL_DEBT_EBITDA        => m.asJson
+      case m: IQ_TOTAL_DEBT_EQUITY        => m.asJson
+      case m: IQ_NET_DEBT_EBITDA          => m.asJson
+      case m: IQ_NET_DEBT_EBITDA_CAPEX    => m.asJson
+      case m: IQ_CASH_INTEREST            => m.asJson
+      case m: IQ_NET_DEBT                 => m.asJson
+      case m: IQ_NET_INTEREST_EXP         => m.asJson
+      case m: IQ_EBITDA_CAPEX             => m.asJson
     }
 
   end Mnemonic
@@ -1471,7 +1510,7 @@ object CapitalIQ:
     case class MnemonicResponse(error: String, rows: Option[Rows])
     object MnemonicResponse:
       given Decoder[RawResponse.MnemonicResponse] = Decoder { c =>
-        for 
+        for
           error <- c.get[String]("ErrMsg")
           jsonRows <- c.get[Option[Vector[Json]]]("Rows")
           rows <- jsonRows.traverse(_.traverse(_.hcursor.get[Vector[String]]("Row")))

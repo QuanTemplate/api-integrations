@@ -10,13 +10,14 @@ import com.quantemplate.integrations.commands.ConfigDef
 import com.quantemplate.integrations.commands.IdentifierLoader.*
 
 case class RevenueReportConfigDef(
-  orgId: String,
-  datasetId: String,
-  currency: String,
-  from: LocalDate,
-  to: LocalDate,
-  identifiers: Option[IdentifiersConf]
-) extends ConfigDef derives Decoder:
+    orgId: String,
+    datasetId: String,
+    currency: String,
+    from: LocalDate,
+    to: LocalDate,
+    identifiers: Option[IdentifiersConf]
+) extends ConfigDef
+    derives Decoder:
   def toCmdConfig(loadedIds: => Vector[Identifier]): CmdConfig = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,

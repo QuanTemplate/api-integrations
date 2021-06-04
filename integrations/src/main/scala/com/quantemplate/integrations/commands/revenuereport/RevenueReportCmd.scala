@@ -29,11 +29,12 @@ class RevenueReportCmd:
   private val revenueReport = RevenueReport(CapitalIQService(httpService), qtService)
 
   def fromCli(args: Array[String]): Unit =
-    RevenueReportArgsParser.parse(args)
+    RevenueReportArgsParser
+      .parse(args)
       .map(_.toCmdConfig(identifiersLoader.loadIdentifiersFromStdin()))
       .map(run)
 
-  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path): Unit = 
+  def fromConfigFile(config: RevenueReportConfigDef, configPath: Path): Unit =
     identifiersLoader
       .loadIdentifiersFromConfig(config.identifiers, configPath, config.orgId)
       .map(_.getOrElse(identifiersLoader.loadIdentifiersFromStdin()))
@@ -43,7 +44,7 @@ class RevenueReportCmd:
   private def run(config: CmdConfig) =
     val ids = config.identifiers
 
-    if ids.isEmpty then 
+    if ids.isEmpty then
       logger.error("No valid CapitalIQ identifiers were provided. Aborting")
       Runtime.getRuntime.halt(1)
 
@@ -57,8 +58,9 @@ class RevenueReportCmd:
         currency = config.currency,
         orgId = config.orgId,
         datasetId = config.datasetId
-      ).onComplete { 
-        case Failure(e) => 
+      )
+      .onComplete {
+        case Failure(e) =>
           logger.error("Failed to generate the revenue report", e)
           Runtime.getRuntime.halt(1)
 

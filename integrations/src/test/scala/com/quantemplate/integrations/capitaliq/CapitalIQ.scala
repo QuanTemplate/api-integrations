@@ -18,14 +18,14 @@ class CapitalIQSpec extends FunSuite:
           Identifier("IQ12345")
         ),
         IQ_TOTAL_REV(
-         IQ_TOTAL_REV.Fn.GDSP(
+          IQ_TOTAL_REV.Fn.GDSP(
             currencyId = "USD",
             asOfDate = "05/05/2021".some,
             periodType = ("IQ_FY" back 20).some,
             restatementTypeId = None,
             filingMode = "F".some
-         ),
-         Identifier("IQ12345")
+          ),
+          Identifier("IQ12345")
         )
       )
     ).asJson
@@ -40,18 +40,18 @@ class CapitalIQSpec extends FunSuite:
             "mnemonic" -> "IQ_COMPANY_NAME_LONG".asJson
           ),
           Json.obj(
-             "function" -> "GDSP".asJson,
-             "identifier" -> "IQ12345".asJson,
-             "mnemonic" -> "IQ_TOTAL_REV".asJson,
-             "properties" -> Json.obj(
-                "currencyId" -> "USD".asJson,
-                "periodType" -> "IQ_FY-20".asJson,
-                "asOfDate" -> "05/05/2021".asJson,
-                "restatementTypeId" -> Json.Null,
-                "filingMode" -> "F".asJson,
-                "consolidatedFlag" -> Json.Null,
-                "currencyConversionModeId" -> Json.Null,
-             )
+            "function" -> "GDSP".asJson,
+            "identifier" -> "IQ12345".asJson,
+            "mnemonic" -> "IQ_TOTAL_REV".asJson,
+            "properties" -> Json.obj(
+              "currencyId" -> "USD".asJson,
+              "periodType" -> "IQ_FY-20".asJson,
+              "asOfDate" -> "05/05/2021".asJson,
+              "restatementTypeId" -> Json.Null,
+              "filingMode" -> "F".asJson,
+              "consolidatedFlag" -> Json.Null,
+              "currencyConversionModeId" -> Json.Null
+            )
           )
         )
       )

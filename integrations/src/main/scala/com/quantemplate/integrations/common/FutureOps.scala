@@ -5,8 +5,8 @@ import scala.concurrent.Future
 
 object FutureOps:
   extension [T](f: Future[T])(using ExecutionContext)
-    def tap(fn: T => Any): Future[T] = 
+    def tap(fn: T => Any): Future[T] =
       f.map { a =>
-          fn(a)
-          a
+        fn(a)
+        a
       }

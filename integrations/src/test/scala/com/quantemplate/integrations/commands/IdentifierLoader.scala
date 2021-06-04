@@ -37,11 +37,11 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
 
     val config = IdentifiersConf(
       dataset = DatasetSource(
-        id = "d-abcd", 
+        id = "d-abcd",
         columnName = columnName.some
-      ).some 
+      ).some
     )
-    
+
     for
       result <- IdentifierLoader(mockQtService)
         .loadIdentifiersFromConfig(
@@ -92,7 +92,7 @@ class IdentifierLoaderSpec extends ActorSystemSuite:
     yield ()
   }
 
-   test("given a `distinct` config option it should filter out duplicated ids") {
+  test("given a `distinct` config option it should filter out duplicated ids") {
     val mockQtService = mock(classOf[QTService])
 
     val ids = Vector(

@@ -16,4 +16,3 @@ case class MnemonicsError(errors: Seq[DomainError]) extends DomainError:
 
 case object DailyMnemonicLimitReachedError extends DomainError:
   override def toString = s"Reached daily limit of 24000 requested mnemonics"
-  

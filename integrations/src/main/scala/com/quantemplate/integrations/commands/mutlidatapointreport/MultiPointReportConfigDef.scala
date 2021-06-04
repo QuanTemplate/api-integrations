@@ -10,13 +10,14 @@ import com.quantemplate.integrations.capitaliq.CapitalIQ.Identifier
 import com.quantemplate.integrations.commands.IdentifierLoader.*
 
 case class MultiPointReportConfigDef(
-  orgId: String,
-  datasetId: String,
-  currency: String,
-  date: LocalDate, 
-  identifiers: Option[IdentifiersConf],
-  columns: Vector[ColumnDef]
-) extends ConfigDef derives Decoder:
+    orgId: String,
+    datasetId: String,
+    currency: String,
+    date: LocalDate,
+    identifiers: Option[IdentifiersConf],
+    columns: Vector[ColumnDef]
+) extends ConfigDef
+    derives Decoder:
   def toCmdConfig(loadedIds: => Vector[Identifier]): CmdConfig = CmdConfig(
     orgId = orgId,
     datasetId = datasetId,
@@ -28,8 +29,8 @@ case class MultiPointReportConfigDef(
 
 case class ColumnDef(mnemonicId: String, header: String)
 object ColumnDef:
-  given Decoder[ColumnDef] = 
+  given Decoder[ColumnDef] =
     Decoder[String].map(m => ColumnDef(m, m)) or
-    Decoder { c => 
-      (c.get[String]("mnemonic"), c.get[String]("header")).mapN(ColumnDef.apply)
-    }
+      Decoder { c =>
+        (c.get[String]("mnemonic"), c.get[String]("header")).mapN(ColumnDef.apply)
+      }
