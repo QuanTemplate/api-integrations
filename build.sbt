@@ -64,3 +64,5 @@ Compile / run / fork := true
 
 ThisBuild / githubWorkflowGeneratedUploadSteps := Seq.empty
 ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
+ThisBuild / githubWorkflowJobSetup +=
+  WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"))

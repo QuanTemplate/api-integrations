@@ -14,7 +14,3 @@ object Main:
     case _ =>
       logger.error("Unsupported command")
       System.exit(1)
-
-// todo:
-// - scalac options
-// - moah tests
