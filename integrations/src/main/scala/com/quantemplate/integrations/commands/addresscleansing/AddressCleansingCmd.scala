@@ -1,6 +1,5 @@
 package com.quantemplate.integrations.commands.addresscleansing
 
-
 import java.nio.file.Path
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
@@ -40,14 +39,16 @@ class AddressCleansingCmd:
   private lazy val geocodingService = GeocodingService()
 
   def fromConfigFile(config: AddressCleansingConfigDef): Unit =
-    import config.{ orgId } 
-    import config.source.pipeline.{ pipelineId, outputName, dataColumn, idColumn }
-    import config.target.{ dataset as targetDatasetId, onFinished }
+    import config.{orgId}
+    import config.source.pipeline.{pipelineId, outputName, dataColumn, idColumn}
+    import config.target.{dataset as targetDatasetId, onFinished}
 
     measure {
-      for 
+      for
         finishedExec <- executePipeline(orgId, pipelineId)
-        outputId <- finishedExec.outputs.find(_.name == outputName).map(_.id) toFutureWith OutputIdNotFound
+        outputId <- finishedExec.outputs
+          .find(_.name == outputName)
+          .map(_.id) toFutureWith OutputIdNotFound
 
         csvStr <- qtService.downloadPipelineOutput(orgId, pipelineId, finishedExec.id, outputId)
         _ = logger.info("Retrieved the pipeline output")
@@ -65,8 +66,8 @@ class AddressCleansingCmd:
 
         _ <- executeTargetTriggers(orgId, onFinished)
       yield ()
-    }  .onComplete { 
-      case Failure(e) => 
+    }.onComplete {
+      case Failure(e) =>
         logger.error("Failed to cleanse addresses", e)
         Runtime.getRuntime.halt(1)
 
@@ -75,17 +76,18 @@ class AddressCleansingCmd:
     }
 
   private def constructSpreadsheet(
-    rows: Vector[Vector[Option[String]]], 
-    sourceAddresses: Vector[String], 
-    sourceIds: Vector[String]
+      rows: Vector[Vector[Option[String]]],
+      sourceAddresses: Vector[String],
+      sourceIds: Vector[String]
   ) =
-    val sheetModel = View.SheetModel("Geocoded result", rows)
+    val sheetModel = View
+      .SheetModel("Geocoded result", rows)
       .prependColumns(sourceAddresses, sourceIds)
 
     Xlsx(Vector(sheetModel))
 
-  private def executePipeline(orgId: String, pipelineId: String) = 
-    for 
+  private def executePipeline(orgId: String, pipelineId: String) =
+    for
       initExec <- qtService.executePipeline(orgId, pipelineId)
       executionId = initExec.id
       _ = logger.info("Execution for the pipeline {} has started", pipelineId)
@@ -93,39 +95,36 @@ class AddressCleansingCmd:
       _ = logger.info("Waiting for the {} pipeline to finish execution...", pipelineId)
       finishedExec <- waitForExecutionToFinish(orgId, pipelineId, executionId)
     yield finishedExec
-  
+
   private def waitForExecutionToFinish(orgId: String, pipelineId: String, execId: String) =
     measure {
       retry(
-        () => 
-          qtService.listExecutions(orgId, pipelineId)
+        () =>
+          qtService
+            .listExecutions(orgId, pipelineId)
             .map(_.find(_.id == execId).filter(_.status == "Succeeded"))
-            .flatMap(_ toFutureWith ExecutionNotFinished)
-        ,
+            .flatMap(_ toFutureWith ExecutionNotFinished),
         300,
         2.seconds
       )
     }
 
   private def executeTargetTriggers(
-    orgId: String, 
-    maybeTriggers: Option[Target.Triggers]
+      orgId: String,
+      maybeTriggers: Option[Target.Triggers]
   ): Future[Unit] =
     maybeTriggers
-      .map { 
-        _
-          .traverse {
-            case trigger: Target.Trigger.ExecutePipeline => 
-              executePipeline(orgId, trigger.pipelineId)
-          }
+      .map {
+        _.traverse { case trigger: Target.Trigger.ExecutePipeline =>
+          executePipeline(orgId, trigger.pipelineId)
+        }
           .map(_ => ())
       }
       .getOrElse(Future.successful(()))
 
-
 object AddressCleansingCmd:
   extension [T](op: Option[T])
-    def toFutureWith(e: Throwable): Future[T] = 
+    def toFutureWith(e: Throwable): Future[T] =
       op.fold(Future.failed(e))(Future.successful)
 
   enum AddressCleanseError extends Throwable:

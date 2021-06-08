@@ -13,7 +13,6 @@ import com.quantemplate.integrations.qt.QTService
 
 import com.quantemplate.integrations.commands.IdentifierLoader
 
-
 class MultiDataPointReportCmd:
   private given Config.CapitalIQ = Config.CapitalIQ.load()
   private given Config.Quantemplate = Config.Quantemplate.load()
@@ -36,14 +35,14 @@ class MultiDataPointReportCmd:
       .map(run)
 
   private def run(config: CmdConfig) =
-    if config.identifiers.isEmpty then 
+    if config.identifiers.isEmpty then
       logger.error("No valid CapitalIQ identifiers were provided. Aborting")
       Runtime.getRuntime.halt(1)
 
     multiDataReport
       .generateSpreadSheet(config)
-      .onComplete { 
-        case Failure(e) => 
+      .onComplete {
+        case Failure(e) =>
           logger.error("Failed to generate a multi data point report", e)
           Runtime.getRuntime.halt(1)
 

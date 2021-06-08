@@ -6,14 +6,13 @@ import org.slf4j.LoggerFactory
 import akka.actor.typed.ActorSystem
 import cats.syntax.option.given
 import akka.http.scaladsl.model.{HttpEntity, FormData}
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 
 import com.quantemplate.integrations.common.{View, Config, HttpService}
 import com.quantemplate.integrations.common.HttpService.*
 import com.quantemplate.integrations.qt.QTModels.*
 
-
-class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Config.Quantemplate):  
+class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Config.Quantemplate):
   lazy val logger = LoggerFactory.getLogger(getClass)
   lazy val endpoints = QTEndpoints(conf.api.baseUrl)
 
@@ -34,23 +33,23 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     yield res
 
   def downloadPipelineOutput(
-    orgId: String, 
-    pipelineId: String, 
-    executionId: String, 
-    outputId: String
-  ): Future[String] =  
+      orgId: String,
+      pipelineId: String,
+      executionId: String,
+      outputId: String
+  ): Future[String] =
     val endpoint = endpoints.executionsOutput(orgId, pipelineId, executionId, outputId)
 
-    for 
+    for
       auth <- getToken().map(getTokenAuthHeaders)
       res <- httpService.getRaw(endpoint, auth)
     yield res match
       case Response(200, Some(res)) => res
-      case res @ Response(404, _) => 
+      case res @ Response(404, _) =>
         throw NotFound("pipeline output", res)
-      case res @ Response(403, _) => 
+      case res @ Response(403, _) =>
         throw Forbidden("pipeline output download", res)
-      case other => 
+      case other =>
         throw UnexpectedError(other)
 
   def uploadDataset(view: View, orgId: String, datasetId: String): Future[Unit] =
@@ -59,11 +58,11 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     for
       auth <- getToken().map(getTokenAuthHeaders)
       res <- httpService.post(endpoint, view.toBytes, auth)
-    yield res match 
+    yield res match
       case Response(200, _) => ()
-      case res @ Response(403, _) => 
+      case res @ Response(403, _) =>
         throw Forbidden("dataset upload", res)
-      case other => 
+      case other =>
         throw UnexpectedError(other)
 
   def downloadDataset(orgId: String, datasetId: String): Future[String] =
@@ -71,18 +70,18 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
 
     for
       auth <- getToken().map(getTokenAuthHeaders)
-      res <- httpService.getRaw(endpoint, auth) 
+      res <- httpService.getRaw(endpoint, auth)
     yield res match
-      case Response(200, Some(res)) => res 
-      case res @ Response(403, _) => 
+      case Response(200, Some(res)) => res
+      case res @ Response(403, _) =>
         throw Forbidden("dataset download", res)
-      case other => 
+      case other =>
         throw UnexpectedError(other)
 
   private def getTokenAuthHeaders(res: TokenResponse) =
     Authorization(OAuth2BearerToken(res.accessToken)).some
 
-  private def getToken(): Future[TokenResponse] = 
+  private def getToken(): Future[TokenResponse] =
     httpService.post[TokenResponse](
       conf.auth.endpoint,
       FormData(
@@ -94,16 +93,16 @@ class QTService(httpService: HttpService)(using ec: ExecutionContext, conf: Conf
     )
 
 private class QTEndpoints(baseUrl: String):
-  def dataset(orgId: String, datasetId: String) = 
+  def dataset(orgId: String, datasetId: String) =
     s"${baseUrl}/v1/organisations/$orgId/datasets/$datasetId"
 
   def executions(orgId: String, pipelineId: String) =
     s"${baseUrl}/v1/organisations/$orgId/pipelines/$pipelineId/executions"
 
   def executionsOutput(
-    orgId: String, 
-    pipelineId: String, 
-    executionId: String, 
-    outputId: String
+      orgId: String,
+      pipelineId: String,
+      executionId: String,
+      outputId: String
   ) =
     s"${executions(orgId, pipelineId)}/$executionId/outputs/$outputId"

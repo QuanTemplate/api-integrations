@@ -11,6 +11,6 @@ object Main:
   def main(args: Array[String]): Unit = args match
     case Array(`configDefInterpreterCmdName`, _*) => ConfigDefInterpreterCmd.fromCli(args)
     case Array(`revenueReportCmdName`, _*)        => RevenueReportCmd().fromCli(args)
-    case _ => 
+    case _ =>
       logger.error("Unsupported command")
       System.exit(1)

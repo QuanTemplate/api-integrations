@@ -4,11 +4,11 @@ import com.typesafe.config.ConfigFactory
 
 object Config:
   case class CapitalIQ(
-    endpoint: String, 
-    credentials: CapitalIQ.Credentials,
-    mnemonicsPerRequest: Int
+      endpoint: String,
+      credentials: CapitalIQ.Credentials,
+      mnemonicsPerRequest: Int
   )
-  object CapitalIQ: 
+  object CapitalIQ:
     case class Credentials(username: String, password: String)
 
     def load(): CapitalIQ =
@@ -18,26 +18,26 @@ object Config:
         endpoint = conf.getString("capitaliq.endpoint"),
         credentials = CapitalIQ.Credentials(
           conf.getString("capitaliq.credentials.username"),
-          conf.getString("capitaliq.credentials.password"),
+          conf.getString("capitaliq.credentials.password")
         ),
-        mnemonicsPerRequest = if conf.getBoolean("capitaliq.demoAccount")
-          then conf.getInt("capitaliq.mnemonicsPerRequestInDemoAccount")
+        mnemonicsPerRequest =
+          if conf.getBoolean("capitaliq.demoAccount") then conf.getInt("capitaliq.mnemonicsPerRequestInDemoAccount")
           else conf.getInt("capitaliq.mnemonicsPerRequestInProdAccount")
       )
 
   case class Quantemplate(
-    auth: Quantemplate.Auth,
-    api: Quantemplate.Api
+      auth: Quantemplate.Auth,
+      api: Quantemplate.Api
   )
 
   object Quantemplate:
     case class Auth(endpoint: String, clientId: String, clientSecret: String)
     case class Api(baseUrl: String)
 
-    def load(): Quantemplate = 
+    def load(): Quantemplate =
       val conf = ConfigFactory.load("quantemplate")
 
-       Quantemplate(
+      Quantemplate(
         auth = Quantemplate.Auth(
           endpoint = conf.getString("quantemplate.auth.endpoint"),
           clientId = conf.getString("quantemplate.auth.credentials.clientId"),
@@ -50,9 +50,9 @@ object Config:
 
   case class GoogleMaps(apiKey: String)
   object GoogleMaps:
-    def load(): GoogleMaps = 
+    def load(): GoogleMaps =
       val conf = ConfigFactory.load("google-maps")
-    
+
       GoogleMaps(
         apiKey = conf.getString("googlemaps.apiKey")
       )

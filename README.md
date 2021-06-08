@@ -30,7 +30,7 @@ The integration program offers a bunch of commands, consult the `Use Cases` sect
 
         - with yaml config:
             ```sh
-            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/revReport.yml
+            java -jar ./integrations/target/scala-3.0.0/qt-integrations-0.1.4.jar apply ./data/revReport.yml
             ```
 
             Check out the [config file](./data/revReport.yml)
@@ -38,14 +38,14 @@ The integration program offers a bunch of commands, consult the `Use Cases` sect
 
         - with CLI args:
             ```sh
-            cat ./data/capitaliq-identifiers.txt | java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
+            cat ./data/capitaliq-identifiers.txt | java -jar ./integrations/target/scala-3.0.0/qt-integrations-0.1.4.jar generateRevenueReport --orgId c-my-small-insuranc-ltdzfd --datasetId d-e4tf3yyxerabcvicidv5oyey --currency USD --from 1988-12-31 --to 2018-12-31
             ```
 
     - [Generating a multi-data point report for a single date with multiple Capital IQ mnemonics and uploading it to the Quantemplate dataset](https://quantemplate.readme.io/docs/example-capital-iq-integration-2)
 
         - with yaml config:
             ```sh
-            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/multiPointReport.yml
+            java -jar ./integrations/target/scala-3.0.0/qt-integrations-0.1.4.jar apply ./data/multiPointReport.yml
             ```
 
             Check out the [config file](./data/multiPointReport.yml)
@@ -70,7 +70,7 @@ The integration program offers a bunch of commands, consult the `Use Cases` sect
 
     #### Available Mnemonics
 
-    Check out the sources of [CapitalIQ.Mnemonic](./capitaliq/src/main/scala/com/quantemplate/capitaliq/capitaliq/CapitalIQ.scala)
+    Check out the sources of [CapitalIQ.Mnemonic](./integrations/src/main/scala/com/quantemplate/integrations/capitaliq/CapitalIQ.scala)
 
 - # Google Geocoding Service
 
@@ -78,10 +78,10 @@ The integration program offers a bunch of commands, consult the `Use Cases` sect
 
 
     ## Use cases
-    - Automated pipeline execution with address cleansing
+    - [Automated pipeline execution with address cleansing](https://quantemplate.readme.io/docs/example-google-geocoding-integration)
         - with yaml config:
             ```sh
-            java -jar ./integrations/target/scala-3.0.0-RC2/qt-integrations-0.1.3.jar apply ./data/addressCleanse.yml
+            java -jar ./integrations/target/scala-3.0.0/qt-integrations-0.1.4.jar apply ./data/addressCleanse.yml
             ```
 
 # Development 
@@ -138,12 +138,18 @@ The integration program offers a bunch of commands, consult the `Use Cases` sect
 3. run the script
 
     ```sh
-    sbt capitaliq/run
+    sbt integrations/run
     ```
 
 ## Packaging
 
 creating a fat jar
 ```
-sbt capitaliq/assembly
+sbt integrations/assembly
+```
+
+## Testing
+
+```
+sbt integrations/test
 ```

@@ -2,7 +2,7 @@ package com.quantemplate.integrations.commands
 
 import java.time.LocalDate
 import java.nio.file.Path
-import io.circe.{ Encoder, Decoder, Json, DecodingFailure }
+import io.circe.{Encoder, Decoder, Json, DecodingFailure}
 import io.circe.yaml.{parser as ymlParser}
 import org.slf4j.LoggerFactory
 import scopt.OParser
@@ -24,12 +24,12 @@ object ConfigDefInterpreterCmd:
     loadConfig(configPath).bimap(
       err => logger.error("Could not parse the config file", err),
       {
-        case config: RevenueReportConfigDef => 
+        case config: RevenueReportConfigDef =>
           RevenueReportCmd().fromConfigFile(config, configPath)
-          
-        case config: MultiPointReportConfigDef => 
+
+        case config: MultiPointReportConfigDef =>
           MultiDataPointReportCmd().fromConfigFile(config, configPath)
-          
+
         case config: AddressCleansingConfigDef =>
           AddressCleansingCmd().fromConfigFile(config)
       }
@@ -42,8 +42,8 @@ private def loadConfig(path: Path) =
     .flatMap(ymlParser.parse(_))
     .flatMap(_.as[ConfigDef])
 
-given Decoder[ConfigDef] = Decoder.instance[ConfigDef] { c => 
-  c.get[String]("command").flatMap { 
+given Decoder[ConfigDef] = Decoder.instance[ConfigDef] { c =>
+  c.get[String]("command").flatMap {
     case `revenueReportCmdName`    => c.get[RevenueReportConfigDef]("params")
     case `multiPointReportCmdName` => c.get[MultiPointReportConfigDef]("params")
     case `addressCleansingCmdName` => c.get[AddressCleansingConfigDef]("params")
@@ -72,4 +72,3 @@ object ConfigArgsParser:
             .required
         )
     )
-

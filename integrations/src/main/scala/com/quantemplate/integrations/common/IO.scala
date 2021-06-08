@@ -13,7 +13,7 @@ object IO:
   def toPath(rawPath: String) =
     FileSystems.getDefault.getPath(rawPath).normalize
 
-  def absolutePath(rawPath: String) = 
+  def absolutePath(rawPath: String) =
     toPath(rawPath).toAbsolutePath
 
   def readLines(path: Path) =
@@ -23,4 +23,4 @@ object IO:
     read(path)(_.getLines.mkString("\n"))
 
   def read[A](path: Path): (BufferedSource => A) => Try[A] =
-     Using(Source.fromFile(path.toFile))
+    Using(Source.fromFile(path.toFile))

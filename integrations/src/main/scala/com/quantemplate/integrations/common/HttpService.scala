@@ -19,8 +19,8 @@ class HttpService(using system: ActorSystem[_]):
   given ExecutionContext = system.executionContext
 
   def getRaw(
-    endpoint: String,
-    auth: Option[Authorization] 
+      endpoint: String,
+      auth: Option[Authorization]
   ): Future[Response] =
     for
       res <- GET(endpoint, auth)
@@ -28,8 +28,8 @@ class HttpService(using system: ActorSystem[_]):
     yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
   def get[B: Decoder](
-    endpoint: String,
-    auth: Option[Authorization] 
+      endpoint: String,
+      auth: Option[Authorization]
   ): Future[B] =
     for
       res <- GET(endpoint, auth)
@@ -38,9 +38,9 @@ class HttpService(using system: ActorSystem[_]):
     yield result
 
   def post[B: Decoder](
-    endpoint: String, 
-    req: RequestEntity, 
-    auth: Option[Authorization]
+      endpoint: String,
+      req: RequestEntity,
+      auth: Option[Authorization]
   ): Future[B] =
     for
       res <- POST(endpoint, req, auth)
@@ -49,11 +49,11 @@ class HttpService(using system: ActorSystem[_]):
     yield result
 
   def post[A: Encoder, B: Decoder](
-    endpoint: String, 
-    req: A, 
-    auth: Option[Authorization]
+      endpoint: String,
+      req: A,
+      auth: Option[Authorization]
   ): Future[B] =
-    for 
+    for
       entity <- Marshal(req).to[RequestEntity]
       res <- POST(endpoint, entity, auth)
       body <- getResponseBody(res)
@@ -61,19 +61,19 @@ class HttpService(using system: ActorSystem[_]):
     yield result
 
   def post(
-    endpoint: String, 
-    bytes: Array[Byte], 
-    auth: Option[Authorization]
-  ): Future[Response] = 
+      endpoint: String,
+      bytes: Array[Byte],
+      auth: Option[Authorization]
+  ): Future[Response] =
     for
       res <- POST(endpoint, HttpEntity(bytes), auth)
       body <- getResponseBody(res)
     yield HttpService.Response(res.status.intValue, body.map(_.utf8String))
 
-  private def getResponseBody(res: HttpResponse) = 
+  private def getResponseBody(res: HttpResponse) =
     res.entity.dataBytes.runFold(ByteString.empty)(_ ++ _).map(Option(_)) // could return null
 
-  private def POST(endpoint: String, entity: RequestEntity, auth: Option[Authorization]) = 
+  private def POST(endpoint: String, entity: RequestEntity, auth: Option[Authorization]) =
     Http().singleRequest(
       HttpRequest(
         method = HttpMethods.POST,
@@ -83,7 +83,7 @@ class HttpService(using system: ActorSystem[_]):
       )
     )
 
-  private def GET(endpoint: String, auth: Option[Authorization]) = 
+  private def GET(endpoint: String, auth: Option[Authorization]) =
     Http().singleRequest(
       HttpRequest(
         method = HttpMethods.GET,
